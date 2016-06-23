@@ -84,8 +84,7 @@ Future<Device> collectDeviceProps(String deviceID) async {
 
 Future<String> property(String deviceID, String propName) async {
   ProcessResult results = await Process.run('adb', ['-s', deviceID, 'shell', 'getprop', propName]);
-  print(results.stdout.runtimeType.toString());
-  return results.stdout.toString();
+  return results.stdout.toString().trim();
 }
 
 Future<dynamic> loadSpecs(String specsPath) async {
