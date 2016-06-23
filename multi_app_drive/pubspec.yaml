@@ -1,0 +1,7 @@
+name: multi_app_drive
+description: A multi-device driver that support multi-device applicatoins testing
+author: Kaiyuan Wang <kaiyuanw@google.com>
+
+dependencies:
+  args: ^0.13.4
+  stack_trace: ^1.4.0
