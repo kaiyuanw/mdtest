@@ -46,6 +46,8 @@ if [ ! -f "$SNAPSHOT_PATH" ] || [ ! -f "$STAMP_PATH" ] || [ `cat "$STAMP_PATH"` 
   echo $REVISION > "$STAMP_PATH"
 fi
 
+echo $MDTEST_DEV
+
 if [ $MDTEST_DEV ]; then
   "$DART" --packages="$MDTEST_TOOL/.packages" -c "$SCRIPT_PATH" "$@"
 else

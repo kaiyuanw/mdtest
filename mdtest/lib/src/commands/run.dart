@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import '../mobile/device.dart';
+import '../mobile/device_spec.dart';
 import '../mobile/device_util.dart';
 import '../globals.dart';
 import '../runner/mdtest_command.dart';
@@ -28,13 +29,28 @@ class RunCommand extends MDTestCommand {
   @override
   Future<int> runCore() async {
     print('Running "mdtest run command" ...');
+
     this._specs = await loadSpecs(argResults['specs']);
     print(_specs);
+
     this._devices = await getDevices();
     if (_devices.isEmpty) {
       printError('No device found.');
       return 1;
     }
+
+    List<DeviceSpecs> allDeviceSpecs
+      = await constructAllDeviceSpecs(_specs['devices']);
+    print(allDeviceSpecs);
+    Map<DeviceSpecs, Device> anyMatch = <DeviceSpecs, Device>{};
+    Map<DeviceSpecs, Set<Device>> individualMatches
+      = findIndividualMatches(allDeviceSpecs, _devices);
+    if(!findAllMatches(0, allDeviceSpecs, individualMatches,
+                     new Set<Device>(), anyMatch)) {
+      printError('No device specs to devices mapping is found.');
+      exit(0);
+    }
+    print(anyMatch);
     return 0;
   }
 
@@ -71,4 +87,62 @@ Future<dynamic> loadSpecs(String specsPath) async {
 
 String normalizePath(String rootPath, String relativePath) {
   return path.normalize(path.join(rootPath, relativePath));
+}
+
+Future<List<DeviceSpecs>> constructAllDeviceSpecs(dynamic allSpecs) async {
+  List<DeviceSpecs> devicesSpecs = <DeviceSpecs>[];
+  for(String name in allSpecs.keys) {
+    Map<String, String> specs = allSpecs[name];
+    devicesSpecs.add(
+      new DeviceSpecs(
+        nickName: name,
+        deviceID: specs['device-id'],
+        deviceModelName: specs['model-name'],
+        appRootPath: specs['app-root'],
+        appPath: specs['app-path']
+      )
+    );
+  }
+  return devicesSpecs;
+}
+
+Map<DeviceSpecs, Set<Device>> findIndividualMatches(
+  List<DeviceSpecs> devicesSpecs,
+  List<Device> devices) {
+  Map<DeviceSpecs, Set<Device>> individualMatches
+    = new Map<DeviceSpecs, Set<Device>>();
+  for(DeviceSpecs deviceSpecs in devicesSpecs) {
+    Set<Device> matchedDevices = new Set<Device>();
+    for(Device device in devices) {
+      if(deviceSpecs.matches(device))
+        matchedDevices.add(device);
+    }
+    individualMatches[deviceSpecs] = matchedDevices;
+  }
+  return individualMatches;
+}
+
+bool findAllMatches(
+  int order,
+  List<DeviceSpecs> devicesSpecs,
+  Map<DeviceSpecs, Set<Device>> individualMatches,
+  Set<Device> visited,
+  Map<DeviceSpecs, Device> anyMatch
+) {
+  if(order == devicesSpecs.length) return true;
+  DeviceSpecs deviceSpecs = devicesSpecs[order];
+  Set<Device> matchedDevices = individualMatches[deviceSpecs];
+  for(Device candidate in matchedDevices) {
+    if(visited.add(candidate)) {
+      anyMatch[deviceSpecs] = candidate;
+      if(findAllMatches(order + 1, devicesSpecs, individualMatches,
+                        visited, anyMatch))
+        return true;
+      else {
+        visited.remove(candidate);
+        anyMatch.remove(deviceSpecs);
+      }
+    }
+  }
+  return false;
 }
