@@ -24,14 +24,18 @@ class RunCommand extends MDTestCommand {
 
   dynamic _specs;
 
-  Future<List<Device>> get devices async => await getDevices();
+  List<Device> _devices;
 
   @override
   Future<int> runCore() async {
     print('Running "mdtest run command" ...');
     this._specs = await loadSpecs(argResults['specs']);
     print(_specs);
-    print(await devices);
+    this._devices = await getDevices();
+    if (_devices.isEmpty) {
+      printError('No device found.');
+      return 1;
+    }
     return 0;
   }
 
@@ -39,8 +43,6 @@ class RunCommand extends MDTestCommand {
     usesSpecsOption();
   }
 }
-
-
 
 Future<dynamic> loadSpecs(String specsPath) async {
   try {
