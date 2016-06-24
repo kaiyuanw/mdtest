@@ -1,4 +1,4 @@
-Multi-Device Applicatoin Testing Framework
+mdtest: Multi-Device Applicatoin Testing Framework
 
 Requires:
     *dart

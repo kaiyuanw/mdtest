@@ -13,6 +13,5 @@ generated-src
 local.properties
 
 # multi_app_driver
-.packages
 *.lock
 *.snapshot

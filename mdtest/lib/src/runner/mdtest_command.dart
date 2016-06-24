@@ -1,21 +1,25 @@
+// Copyright 2016 The Vanadium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
 import '../globals.dart';
-import 'multi_drive_command_runner.dart';
+import 'mdtest_command_runner.dart';
 
 typedef bool Validator();
 
-abstract class MultiDriveCommand extends Command {
+abstract class MDTestCommand extends Command {
 
-  MultiDriveCommand() {
+  MDTestCommand() {
     commandValidator = _commandValidator;
   }
 
   @override
-  MultiDriveCommandRunner get runner => super.runner;
+  MDTestCommandRunner get runner => super.runner;
 
   bool _usesSpecsOption = false;
 
@@ -36,7 +40,7 @@ abstract class MultiDriveCommand extends Command {
     Stopwatch stopwatch = new Stopwatch()..start();
     return _run().then((int exitCode) {
       int ms = stopwatch.elapsedMilliseconds;
-      printInfo('"multi-drive $name" took ${ms}ms; exiting with code $exitCode.');
+      printInfo('"mdtest $name" took ${ms}ms; exiting with code $exitCode.');
       return exitCode;
     });
   }
