@@ -36,7 +36,8 @@ Future<List<String>> _getDeviceIDs() async {
       continue;
     }
 
-    if (stopPatternWithDevices.hasMatch(line.toString()) || stopPatternWithoutDevices.hasMatch(line.toString()))
+    if (stopPatternWithDevices.hasMatch(line.toString())
+        || stopPatternWithoutDevices.hasMatch(line.toString()))
       break;
 
     if (startReading) {

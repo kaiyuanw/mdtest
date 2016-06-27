@@ -15,3 +15,4 @@ local.properties
 # multi_app_driver
 *.lock
 *.snapshot
+*.stamp

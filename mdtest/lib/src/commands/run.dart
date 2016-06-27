@@ -19,8 +19,7 @@ class RunCommand extends MDTestCommand {
   final String name = 'run';
 
   @override
-  final String description = 'Run multi-device applicatoin on multiple devices,'
-                             ' then run test script.';
+  final String description = 'Run multi-device driver tests';
 
   dynamic _specs;
 
