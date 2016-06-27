@@ -1,3 +1,7 @@
+// Copyright 2016 The Vanadium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 import 'device.dart';
 
 class DeviceSpecs {
@@ -7,7 +11,8 @@ class DeviceSpecs {
       this.deviceID,
       this.deviceModelName,
       this.appRootPath,
-      this.appPath
+      this.appPath,
+      this.observatoryPort
     }
   );
 
@@ -16,6 +21,7 @@ class DeviceSpecs {
   final String deviceModelName;
   final String appRootPath;
   final String appPath;
+  String observatoryPort;
 
   bool matches(Device device) {
     if(deviceID == device.id) {
@@ -30,6 +36,6 @@ class DeviceSpecs {
   }
 
   @override
-  String toString() => 'Nickname: $nickName, Target ID: $deviceID, '
-                       'Target Model Name: $deviceModelName';
+  String toString() => '<nickname: $nickName, iD: $deviceID, '
+                       'model name: $deviceModelName, port: $observatoryPort>';
 }

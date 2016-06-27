@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../base/common.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
 import '../mobile/device_util.dart';
@@ -41,16 +42,27 @@ class RunCommand extends MDTestCommand {
 
     List<DeviceSpecs> allDeviceSpecs
       = await constructAllDeviceSpecs(_specs['devices']);
-    print(allDeviceSpecs);
     Map<DeviceSpecs, Device> anyMatch = <DeviceSpecs, Device>{};
     Map<DeviceSpecs, Set<Device>> individualMatches
       = findIndividualMatches(allDeviceSpecs, _devices);
     if(!findAllMatches(0, allDeviceSpecs, individualMatches,
                      new Set<Device>(), anyMatch)) {
       printError('No device specs to devices mapping is found.');
-      exit(0);
+      return 1;
     }
-    print(anyMatch);
+
+    if (await runAllApps(anyMatch) != 0) {
+      printError('Error when running applications');
+      return 1;
+    }
+
+    await storeMatches(anyMatch);
+
+    if (await runTest(_specs['test-path']) != 0) {
+      printError('Test execution exit with error.');
+      return 1;
+    }
+
     return 0;
   }
 
@@ -145,4 +157,87 @@ bool findAllMatches(
     }
   }
   return false;
+}
+
+List<Process> appProcesses = <Process>[];
+
+Future<int> runAllApps(Map<DeviceSpecs, Device> anyMatch) async {
+  int result = 0;
+  for (DeviceSpecs deviceSpecs in anyMatch.keys) {
+    Device device = anyMatch[deviceSpecs];
+    result += await runApp(deviceSpecs, device);
+  }
+  return result == 0 ? 0 : 1;
+}
+
+Future<int> runApp(DeviceSpecs deviceSpecs,  Device device) async {
+  Process process = await Process.start(
+    'flutter',
+    ['run', '-d', device.id, '--target=${deviceSpecs.appPath}'],
+    workingDirectory: deviceSpecs.appRootPath
+  );
+  appProcesses.add(process);
+  Stream lineStream = process.stdout
+                             .transform(new Utf8Decoder())
+                             .transform(new LineSplitter());
+  RegExp portPattern = new RegExp(r'Observatory listening on (http.*)');
+  await for (var line in lineStream) {
+    print(line.toString().trim());
+    Match portMatch = portPattern.firstMatch(line.toString());
+    if (portMatch != null) {
+      deviceSpecs.observatoryPort = portMatch.group(1);
+      break;
+    }
+  }
+
+  process.stderr.drain();
+
+  if (deviceSpecs.observatoryPort == null) {
+    printError('No observatory port is found.');
+    return 1;
+  }
+
+  return 0;
+}
+
+Future<Null> storeMatches(Map<DeviceSpecs, Device> anyMatch) async {
+  Map<String, dynamic> matchesData = new Map<String, dynamic>();
+  anyMatch.forEach((DeviceSpecs specs, Device device) {
+    Map<String, String> idAndPort = new Map<String, String>();
+    idAndPort['device-id'] = device.id;
+    idAndPort['observatory-port'] = specs.observatoryPort;
+    matchesData[specs.nickName] = idAndPort;
+  });
+  Directory systemTempDir = Directory.systemTemp;
+  File tempFile = new File('${systemTempDir.path}/$defaultTempSpecsName');
+  if(await tempFile.exists())
+    await tempFile.delete();
+  File file = await tempFile.create();
+  await file.writeAsString(JSON.encode(matchesData));
+}
+
+Future<int> runTest(String testPath) async {
+  Process process = await Process.start('dart', ['$testPath']);
+  RegExp testPassPattern = new RegExp(r'All tests passed');
+  RegExp testFailPattern = new RegExp(r'Some tests failed');
+  Stream stdoutStream = process.stdout
+                               .transform(new Utf8Decoder())
+                               .transform(new LineSplitter());
+  await for (var line in stdoutStream) {
+    print(line.toString().trim());
+    if (testPassPattern.hasMatch(line.toString()) || testFailPattern.hasMatch(line.toString())) {
+      process.stderr.drain();
+      killAllProcesses(appProcesses);
+      break;
+    }
+  }
+
+  return await process.exitCode;
+}
+
+Future<Null> killAllProcesses(List<Process> processes) async {
+  for (Process process in processes) {
+    print(process.kill());
+    print(await process.exitCode);
+  }
 }
