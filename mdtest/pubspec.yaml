@@ -4,9 +4,5 @@ description: A multi-device app testing framework for Android and iOS
 dependencies:
   args: ^0.13.4
   stack_trace: ^1.4.0
-  flutter:
-    path: ../../../../../Intern/fork/flutter/packages/flutter
-  flutter_test:
-    path: ../../../../../Intern/fork/flutter/packages/flutter_test
   flutter_driver:
-    path: ../../../../../Intern/fork/flutter/packages/flutter_driver
+    path: ../deps/flutter/packages/flutter_driver

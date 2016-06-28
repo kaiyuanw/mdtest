@@ -40,23 +40,23 @@ class RunCommand extends MDTestCommand {
       return 1;
     }
 
-    List<DeviceSpecs> allDeviceSpecs
+    List<DeviceSpec> allDeviceSpecs
       = await constructAllDeviceSpecs(_specs['devices']);
-    Map<DeviceSpecs, Device> anyMatch = <DeviceSpecs, Device>{};
-    Map<DeviceSpecs, Set<Device>> individualMatches
+    Map<DeviceSpec, Set<Device>> individualMatches
       = findIndividualMatches(allDeviceSpecs, _devices);
-    if(!findAllMatches(0, allDeviceSpecs, individualMatches,
-                     new Set<Device>(), anyMatch)) {
+    Map<DeviceSpec, Device> deviceMapping
+      = findMatchingDeviceMapping(allDeviceSpecs, individualMatches);
+    if(deviceMapping == null) {
       printError('No device specs to devices mapping is found.');
       return 1;
     }
 
-    if (await runAllApps(anyMatch) != 0) {
+    if (await runAllApps(deviceMapping) != 0) {
       printError('Error when running applications');
       return 1;
     }
 
-    await storeMatches(anyMatch);
+    await storeMatches(deviceMapping);
 
     if (await runTest(_specs['test-path']) != 0) {
       printError('Test execution exit with error.');
@@ -101,12 +101,13 @@ String normalizePath(String rootPath, String relativePath) {
   return path.normalize(path.join(rootPath, relativePath));
 }
 
-Future<List<DeviceSpecs>> constructAllDeviceSpecs(dynamic allSpecs) async {
-  List<DeviceSpecs> devicesSpecs = <DeviceSpecs>[];
+/// Build a list of device specs from mappings loaded from JSON .spec file
+Future<List<DeviceSpec>> constructAllDeviceSpecs(dynamic allSpecs) async {
+  List<DeviceSpec> deviceSpecs = <DeviceSpec>[];
   for(String name in allSpecs.keys) {
     Map<String, String> specs = allSpecs[name];
-    devicesSpecs.add(
-      new DeviceSpecs(
+    deviceSpecs.add(
+      new DeviceSpec(
         nickName: name,
         deviceID: specs['device-id'],
         deviceModelName: specs['model-name'],
@@ -115,15 +116,16 @@ Future<List<DeviceSpecs>> constructAllDeviceSpecs(dynamic allSpecs) async {
       )
     );
   }
-  return devicesSpecs;
+  return deviceSpecs;
 }
 
-Map<DeviceSpecs, Set<Device>> findIndividualMatches(
-  List<DeviceSpecs> devicesSpecs,
+/// Find all matched devices for each device spec
+Map<DeviceSpec, Set<Device>> findIndividualMatches(
+  List<DeviceSpec> deviceSpecs,
   List<Device> devices) {
-  Map<DeviceSpecs, Set<Device>> individualMatches
-    = new Map<DeviceSpecs, Set<Device>>();
-  for(DeviceSpecs deviceSpecs in devicesSpecs) {
+  Map<DeviceSpec, Set<Device>> individualMatches
+    = new Map<DeviceSpec, Set<Device>>();
+  for(DeviceSpec deviceSpecs in deviceSpecs) {
     Set<Device> matchedDevices = new Set<Device>();
     for(Device device in devices) {
       if(deviceSpecs.matches(device))
@@ -134,25 +136,40 @@ Map<DeviceSpecs, Set<Device>> findIndividualMatches(
   return individualMatches;
 }
 
-bool findAllMatches(
+/// Return the first device spec to device matching, null if no such matching
+Map<DeviceSpec, Device> findMatchingDeviceMapping(
+  List<DeviceSpec> deviceSpecs,
+  Map<DeviceSpec, Set<Device>> individualMatches) {
+  Map<DeviceSpec, Device> deviceMapping = <DeviceSpec, Device>{};
+  Set<Device> visited = new Set<Device>();
+  if (!_findMatchingDeviceMapping(0, deviceSpecs, individualMatches,
+                                  visited, deviceMapping)) {
+    return null;
+  }
+  return deviceMapping;
+}
+
+/// Find a mapping that matches every device spec to a device. If such
+/// mapping is not found, return false, otherwise return true.
+bool _findMatchingDeviceMapping(
   int order,
-  List<DeviceSpecs> devicesSpecs,
-  Map<DeviceSpecs, Set<Device>> individualMatches,
+  List<DeviceSpec> deviceSpecs,
+  Map<DeviceSpec, Set<Device>> individualMatches,
   Set<Device> visited,
-  Map<DeviceSpecs, Device> anyMatch
+  Map<DeviceSpec, Device> deviceMapping
 ) {
-  if(order == devicesSpecs.length) return true;
-  DeviceSpecs deviceSpecs = devicesSpecs[order];
-  Set<Device> matchedDevices = individualMatches[deviceSpecs];
+  if(order == deviceSpecs.length) return true;
+  DeviceSpec deviceSpec = deviceSpecs[order];
+  Set<Device> matchedDevices = individualMatches[deviceSpec];
   for(Device candidate in matchedDevices) {
     if(visited.add(candidate)) {
-      anyMatch[deviceSpecs] = candidate;
-      if(findAllMatches(order + 1, devicesSpecs, individualMatches,
-                        visited, anyMatch))
+      deviceMapping[deviceSpec] = candidate;
+      if(_findMatchingDeviceMapping(order + 1, deviceSpecs, individualMatches,
+                                    visited, deviceMapping))
         return true;
       else {
         visited.remove(candidate);
-        anyMatch.remove(deviceSpecs);
+        deviceMapping.remove(deviceSpec);
       }
     }
   }
@@ -161,20 +178,28 @@ bool findAllMatches(
 
 List<Process> appProcesses = <Process>[];
 
-Future<int> runAllApps(Map<DeviceSpecs, Device> anyMatch) async {
-  int result = 0;
-  for (DeviceSpecs deviceSpecs in anyMatch.keys) {
-    Device device = anyMatch[deviceSpecs];
-    result += await runApp(deviceSpecs, device);
+Future<int> runAllApps(Map<DeviceSpec, Device> deviceMapping) async {
+  List<Future<int>> runAppList = <Future<int>>[];
+  for (DeviceSpec deviceSpec in deviceMapping.keys) {
+    Device device = deviceMapping[deviceSpec];
+    runAppList.add(runApp(deviceSpec, device));
   }
-  return result == 0 ? 0 : 1;
+  int res = 0;
+  List<int> results = await Future.wait(runAppList);
+  for (int result in results)
+      res += result;
+  return res == 0 ? 0 : 1;
 }
 
-Future<int> runApp(DeviceSpecs deviceSpecs,  Device device) async {
+/// Create a process that runs 'flutter run ...' command which installs and
+/// starts the app on the device.  The function finds a observatory port
+/// through the process output.  If no observatory port is found, then report
+/// error.
+Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
   Process process = await Process.start(
     'flutter',
-    ['run', '-d', device.id, '--target=${deviceSpecs.appPath}'],
-    workingDirectory: deviceSpecs.appRootPath
+    ['run', '-d', device.id, '--target=${deviceSpec.appPath}'],
+    workingDirectory: deviceSpec.appRootPath
   );
   appProcesses.add(process);
   Stream lineStream = process.stdout
@@ -185,14 +210,14 @@ Future<int> runApp(DeviceSpecs deviceSpecs,  Device device) async {
     print(line.toString().trim());
     Match portMatch = portPattern.firstMatch(line.toString());
     if (portMatch != null) {
-      deviceSpecs.observatoryPort = portMatch.group(1);
+      deviceSpec.observatoryPort = portMatch.group(1);
       break;
     }
   }
 
   process.stderr.drain();
 
-  if (deviceSpecs.observatoryPort == null) {
+  if (deviceSpec.observatoryPort == null) {
     printError('No observatory port is found.');
     return 1;
   }
@@ -200,13 +225,20 @@ Future<int> runApp(DeviceSpecs deviceSpecs,  Device device) async {
   return 0;
 }
 
-Future<Null> storeMatches(Map<DeviceSpecs, Device> anyMatch) async {
+/// Store the specs to device mapping as a system temporary file.  The file
+/// stores device nickname as well as device id and observatory port for
+/// each device
+Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
   Map<String, dynamic> matchesData = new Map<String, dynamic>();
-  anyMatch.forEach((DeviceSpecs specs, Device device) {
+  deviceMapping.forEach((DeviceSpec specs, Device device) {
     Map<String, String> idAndPort = new Map<String, String>();
     idAndPort['device-id'] = device.id;
     idAndPort['observatory-port'] = specs.observatoryPort;
-    matchesData[specs.nickName] = idAndPort;
+    matchesData[specs.nickName] =
+    {
+      'device-id': device.id,
+      'observatory-port': specs.observatoryPort
+    };
   });
   Directory systemTempDir = Directory.systemTemp;
   File tempFile = new File('${systemTempDir.path}/$defaultTempSpecsName');
@@ -216,28 +248,29 @@ Future<Null> storeMatches(Map<DeviceSpecs, Device> anyMatch) async {
   await file.writeAsString(JSON.encode(matchesData));
 }
 
+/// Create a process and invoke 'dart testPath' to run the test script.  After
+/// test result is returned (either pass or fail), kill all app processes and
+/// return the current process exit code
 Future<int> runTest(String testPath) async {
   Process process = await Process.start('dart', ['$testPath']);
-  RegExp testPassPattern = new RegExp(r'All tests passed');
-  RegExp testFailPattern = new RegExp(r'Some tests failed');
+  RegExp testStopPattern = new RegExp(r'All tests passed|Some tests failed');
   Stream stdoutStream = process.stdout
                                .transform(new Utf8Decoder())
                                .transform(new LineSplitter());
   await for (var line in stdoutStream) {
     print(line.toString().trim());
-    if (testPassPattern.hasMatch(line.toString()) || testFailPattern.hasMatch(line.toString())) {
+    if (testStopPattern.hasMatch(line.toString())) {
       process.stderr.drain();
       killAllProcesses(appProcesses);
       break;
     }
   }
-
   return await process.exitCode;
 }
 
+/// Kill all given processes
 Future<Null> killAllProcesses(List<Process> processes) async {
   for (Process process in processes) {
-    print(process.kill());
-    print(await process.exitCode);
+    process.kill();
   }
 }

@@ -4,8 +4,8 @@
 
 import 'device.dart';
 
-class DeviceSpecs {
-  DeviceSpecs(
+class DeviceSpec {
+  DeviceSpec(
     {
       this.nickName,
       this.deviceID,
