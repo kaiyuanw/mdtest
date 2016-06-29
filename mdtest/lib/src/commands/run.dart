@@ -92,7 +92,7 @@ Future<int> runAllApps(Map<DeviceSpec, Device> deviceMapping) async {
 Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
   Process process = await Process.start(
     'flutter',
-    ['run', '-d', device.id, '--target=${deviceSpec.appPath}'],
+    ['run', '--no-resident', '-d', device.id, '--target=${deviceSpec.appPath}'],
     workingDirectory: deviceSpec.appRootPath
   );
   appProcesses.add(process);
