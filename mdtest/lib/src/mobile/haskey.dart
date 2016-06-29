@@ -6,12 +6,12 @@ abstract class HasKey {
   String clusterKey();
 }
 
-Map<String, List<HasKey>> buildCluster(List<HasKey> elements) {
-  Map<String, List<HasKey>> clusters = <String, List<HasKey>>{};
-  for (HasKey element in elements) {
+Map<String, List<dynamic>> buildCluster(List<dynamic> elements) {
+  Map<String, List<dynamic>> clusters = <String, List<dynamic>>{};
+  for (dynamic element in elements) {
     String key = element.clusterKey();
     if (!clusters.containsKey(key)) {
-      List<HasKey> cluster = <HasKey>[];
+      List<dynamic> cluster = <dynamic>[];
       cluster.add(element);
       clusters[key] = cluster;
     } else {

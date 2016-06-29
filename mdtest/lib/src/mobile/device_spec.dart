@@ -50,7 +50,7 @@ class DeviceSpec implements HasKey {
   }
 
   @override
-  String toString() => '<nickname: $nickName, iD: $deviceID, '
+  String toString() => '<nickname: $nickName, id: $deviceID, '
                        'model name: $deviceModelName, port: $observatoryUrl, '
                        'app path: $appPath>';
 }

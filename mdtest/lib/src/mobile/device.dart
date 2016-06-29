@@ -18,7 +18,7 @@ class Device implements HasKey {
 
   @override
   String clusterKey() {
-    return modelName;
+    return id;
   }
 
   @override

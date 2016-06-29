@@ -53,12 +53,7 @@ class Coverage {
     StringBuffer sb = new StringBuffer();
     sb.writeln('==========');
     for (List<int> row in net) {
-      String prefix = '';
-      for (int col in row) {
-        sb.write('$prefix $col');
-        prefix = ',';
-      }
-      sb.writeln();
+      sb.writeln(row.join(', '));
     }
     sb.write('==========');
     print(sb.toString());

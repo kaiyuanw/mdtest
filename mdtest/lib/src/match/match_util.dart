@@ -87,16 +87,18 @@ Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
   await file.writeAsString(JSON.encode(matchesData));
 }
 
+bool foundAllMatches;
+
 List<Map<DeviceSpec, Device>> findAllMatchingDeviceMappings(
   List<DeviceSpec> deviceSpecs,
   Map<DeviceSpec, Set<Device>> individualMatches) {
   Map<DeviceSpec, Device> deviceMapping = <DeviceSpec, Device>{};
   Set<Device> visited = new Set<Device>();
-  bool foundAllMatches = false;
+  foundAllMatches = false;
   List<Map<DeviceSpec, Device>> allMatches = <Map<DeviceSpec, Device>>[];
   _findAllMatchingDeviceMappings(
     0, deviceSpecs, individualMatches,
-    visited, deviceMapping, foundAllMatches, allMatches
+    visited, deviceMapping, allMatches
   );
   if (!foundAllMatches) {
     return null;
@@ -110,7 +112,6 @@ bool _findAllMatchingDeviceMappings(
   Map<DeviceSpec, Set<Device>> individualMatches,
   Set<Device> visited,
   Map<DeviceSpec, Device> deviceMapping,
-  bool foundAllMatches,
   List<Map<DeviceSpec, Device>> allMatches
 ) {
   if(order == deviceSpecs.length) {
@@ -124,7 +125,7 @@ bool _findAllMatchingDeviceMappings(
       deviceMapping[deviceSpec] = candidate;
       if(_findAllMatchingDeviceMappings(
         order + 1, deviceSpecs, individualMatches,
-        visited, deviceMapping, foundAllMatches, allMatches)) {
+        visited, deviceMapping, allMatches)) {
         allMatches.add(mappingCopy(deviceMapping));
       }
       visited.remove(candidate);
@@ -144,13 +145,14 @@ Map<DeviceSpec, Device> mappingCopy(Map<DeviceSpec, Device> original) {
 
 void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
   StringBuffer sb = new StringBuffer();
-  int roundNum = 0;
+  int roundNum = 1;
   sb.writeln('**********');
   for (Map<DeviceSpec, Device> match in matches) {
     sb.writeln('Round $roundNum:');
     match.forEach((DeviceSpec spec, Device device) {
       sb.writeln('$spec -> $device');
     });
+    roundNum++;
   }
   sb.write('**********');
   print(sb.toString());

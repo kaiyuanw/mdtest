@@ -68,10 +68,11 @@ class RunCommand extends MDTestCommand {
   }
 }
 
-List<Process> appProcesses = <Process>[];
+List<Process> appProcesses;
 
 /// Invoke runApp function for each device spec to device mapping in parallel
 Future<int> runAllApps(Map<DeviceSpec, Device> deviceMapping) async {
+  appProcesses = <Process>[];
   List<Future<int>> runAppList = <Future<int>>[];
   for (DeviceSpec deviceSpec in deviceMapping.keys) {
     Device device = deviceMapping[deviceSpec];
