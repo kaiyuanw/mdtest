@@ -6,12 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-
-import '../base/common.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
-import '../mobile/device_util.dart';
+import '../match/match_util.dart';
 import '../globals.dart';
 import '../runner/mdtest_command.dart';
 
@@ -71,113 +68,9 @@ class RunCommand extends MDTestCommand {
   }
 }
 
-Future<dynamic> loadSpecs(String specsPath) async {
-  try {
-    // Read specs file into json format
-    dynamic newSpecs = JSON.decode(await new File(specsPath).readAsString());
-    // Get the parent directory of the specs file
-    String rootPath = new File(specsPath).parent.absolute.path;
-    // Normalize the 'test-path' in the specs file
-    newSpecs['test-path'] = normalizePath(rootPath, newSpecs['test-path']);
-    // Normalize the 'app-path' in the specs file
-    newSpecs['devices'].forEach((String name, Map<String, String> map) {
-      map['app-path'] = normalizePath(rootPath, map['app-path']);
-      map['app-root'] = normalizePath(rootPath, map['app-root']);
-    });
-    return newSpecs;
-  } on FileSystemException {
-    printError('File $specsPath does not exist.');
-    exit(1);
-  } on FormatException {
-    printError('File $specsPath is not in JSON format.');
-    exit(1);
-  } catch (e) {
-    print('Unknown Exception details:\n $e');
-    exit(1);
-  }
-}
-
-String normalizePath(String rootPath, String relativePath) {
-  return path.normalize(path.join(rootPath, relativePath));
-}
-
-/// Build a list of device specs from mappings loaded from JSON .spec file
-Future<List<DeviceSpec>> constructAllDeviceSpecs(dynamic allSpecs) async {
-  List<DeviceSpec> deviceSpecs = <DeviceSpec>[];
-  for(String name in allSpecs.keys) {
-    Map<String, String> specs = allSpecs[name];
-    deviceSpecs.add(
-      new DeviceSpec(
-        nickName: name,
-        deviceID: specs['device-id'],
-        deviceModelName: specs['model-name'],
-        appRootPath: specs['app-root'],
-        appPath: specs['app-path']
-      )
-    );
-  }
-  return deviceSpecs;
-}
-
-/// Find all matched devices for each device spec
-Map<DeviceSpec, Set<Device>> findIndividualMatches(
-  List<DeviceSpec> deviceSpecs,
-  List<Device> devices) {
-  Map<DeviceSpec, Set<Device>> individualMatches
-    = new Map<DeviceSpec, Set<Device>>();
-  for(DeviceSpec deviceSpecs in deviceSpecs) {
-    Set<Device> matchedDevices = new Set<Device>();
-    for(Device device in devices) {
-      if(deviceSpecs.matches(device))
-        matchedDevices.add(device);
-    }
-    individualMatches[deviceSpecs] = matchedDevices;
-  }
-  return individualMatches;
-}
-
-/// Return the first device spec to device matching, null if no such matching
-Map<DeviceSpec, Device> findMatchingDeviceMapping(
-  List<DeviceSpec> deviceSpecs,
-  Map<DeviceSpec, Set<Device>> individualMatches) {
-  Map<DeviceSpec, Device> deviceMapping = <DeviceSpec, Device>{};
-  Set<Device> visited = new Set<Device>();
-  if (!_findMatchingDeviceMapping(0, deviceSpecs, individualMatches,
-                                  visited, deviceMapping)) {
-    return null;
-  }
-  return deviceMapping;
-}
-
-/// Find a mapping that matches every device spec to a device. If such
-/// mapping is not found, return false, otherwise return true.
-bool _findMatchingDeviceMapping(
-  int order,
-  List<DeviceSpec> deviceSpecs,
-  Map<DeviceSpec, Set<Device>> individualMatches,
-  Set<Device> visited,
-  Map<DeviceSpec, Device> deviceMapping
-) {
-  if(order == deviceSpecs.length) return true;
-  DeviceSpec deviceSpec = deviceSpecs[order];
-  Set<Device> matchedDevices = individualMatches[deviceSpec];
-  for(Device candidate in matchedDevices) {
-    if(visited.add(candidate)) {
-      deviceMapping[deviceSpec] = candidate;
-      if(_findMatchingDeviceMapping(order + 1, deviceSpecs, individualMatches,
-                                    visited, deviceMapping))
-        return true;
-      else {
-        visited.remove(candidate);
-        deviceMapping.remove(deviceSpec);
-      }
-    }
-  }
-  return false;
-}
-
 List<Process> appProcesses = <Process>[];
 
+/// Invoke runApp function for each device spec to device mapping in parallel
 Future<int> runAllApps(Map<DeviceSpec, Device> deviceMapping) async {
   List<Future<int>> runAppList = <Future<int>>[];
   for (DeviceSpec deviceSpec in deviceMapping.keys) {
@@ -223,26 +116,6 @@ Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
   }
 
   return 0;
-}
-
-/// Store the specs to device mapping as a system temporary file.  The file
-/// stores device nickname as well as device id and observatory port for
-/// each device
-Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
-  Map<String, dynamic> matchesData = new Map<String, dynamic>();
-  deviceMapping.forEach((DeviceSpec specs, Device device) {
-    matchesData[specs.nickName] =
-    {
-      'device-id': device.id,
-      'observatory-url': specs.observatoryUrl
-    };
-  });
-  Directory systemTempDir = Directory.systemTemp;
-  File tempFile = new File('${systemTempDir.path}/$defaultTempSpecsName');
-  if(await tempFile.exists())
-    await tempFile.delete();
-  File file = await tempFile.create();
-  await file.writeAsString(JSON.encode(matchesData));
 }
 
 /// Create a process and invoke 'dart testPath' to run the test script.  After
