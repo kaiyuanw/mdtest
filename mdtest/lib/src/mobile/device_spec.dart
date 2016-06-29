@@ -12,7 +12,7 @@ class DeviceSpec {
       this.deviceModelName,
       this.appRootPath,
       this.appPath,
-      this.observatoryPort
+      this.observatoryUrl
     }
   );
 
@@ -21,8 +21,9 @@ class DeviceSpec {
   final String deviceModelName;
   final String appRootPath;
   final String appPath;
-  String observatoryPort;
+  String observatoryUrl;
 
+  // TODO(kaiyuanw): rewrite matches function later if necessary
   bool matches(Device device) {
     if(deviceID == device.id) {
       return deviceModelName == null ?
@@ -37,5 +38,5 @@ class DeviceSpec {
 
   @override
   String toString() => '<nickname: $nickName, iD: $deviceID, '
-                       'model name: $deviceModelName, port: $observatoryPort>';
+                       'model name: $deviceModelName, port: $observatoryUrl>';
 }

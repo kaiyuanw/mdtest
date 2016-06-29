@@ -210,15 +210,15 @@ Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
     print(line.toString().trim());
     Match portMatch = portPattern.firstMatch(line.toString());
     if (portMatch != null) {
-      deviceSpec.observatoryPort = portMatch.group(1);
+      deviceSpec.observatoryUrl = portMatch.group(1);
       break;
     }
   }
 
   process.stderr.drain();
 
-  if (deviceSpec.observatoryPort == null) {
-    printError('No observatory port is found.');
+  if (deviceSpec.observatoryUrl == null) {
+    printError('No observatory url is found.');
     return 1;
   }
 
@@ -231,13 +231,10 @@ Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
 Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
   Map<String, dynamic> matchesData = new Map<String, dynamic>();
   deviceMapping.forEach((DeviceSpec specs, Device device) {
-    Map<String, String> idAndPort = new Map<String, String>();
-    idAndPort['device-id'] = device.id;
-    idAndPort['observatory-port'] = specs.observatoryPort;
     matchesData[specs.nickName] =
     {
       'device-id': device.id,
-      'observatory-port': specs.observatoryPort
+      'observatory-url': specs.observatoryUrl
     };
   });
   Directory systemTempDir = Directory.systemTemp;

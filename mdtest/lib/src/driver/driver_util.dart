@@ -31,9 +31,9 @@ class DriverUtil {
     }
     // read device id and observatory port
     String deviceID = configs[deviceNickname]['device-id'];
-    String observatoryPort = configs[deviceNickname]['observatory-port'];
-    printInfo('$deviceNickname refers to device $deviceID running on port $observatoryPort');
+    String observatoryUrl = configs[deviceNickname]['observatory-url'];
+    printInfo('$deviceNickname refers to device $deviceID running on url $observatoryUrl');
     // delegate to flutter driver connect method
-    return await FlutterDriver.connect(dartVmServiceUrl: '$observatoryPort');
+    return await FlutterDriver.connect(dartVmServiceUrl: '$observatoryUrl');
   }
 }
