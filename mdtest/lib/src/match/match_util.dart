@@ -68,18 +68,15 @@ bool _findMatchingDeviceMapping(
 }
 
 /// Store the specs to device mapping as a system temporary file.  The file
-/// stores device nickname as well as device id and observatory port for
+/// stores device nickname as well as device id and observatory url for
 /// each device
 Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
   Map<String, dynamic> matchesData = new Map<String, dynamic>();
   deviceMapping.forEach((DeviceSpec specs, Device device) {
-    Map<String, String> idAndPort = new Map<String, String>();
-    idAndPort['device-id'] = device.id;
-    idAndPort['observatory-port'] = specs.observatoryPort;
     matchesData[specs.nickName] =
     {
       'device-id': device.id,
-      'observatory-port': specs.observatoryPort
+      'observatory-url': specs.observatoryUrl
     };
   });
   Directory systemTempDir = Directory.systemTemp;
