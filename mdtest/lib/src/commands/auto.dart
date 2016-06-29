@@ -3,8 +3,6 @@
 // license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';

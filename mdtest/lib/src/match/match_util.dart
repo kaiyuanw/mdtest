@@ -89,6 +89,7 @@ Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
 
 bool foundAllMatches;
 
+/// Return all spec to device mappings, return null if no such mapping exists
 List<Map<DeviceSpec, Device>> findAllMatchingDeviceMappings(
   List<DeviceSpec> deviceSpecs,
   Map<DeviceSpec, Set<Device>> individualMatches) {
@@ -106,6 +107,11 @@ List<Map<DeviceSpec, Device>> findAllMatchingDeviceMappings(
   return allMatches;
 }
 
+/// Recursively find every spec to device mapping and collect such mappings
+/// as [allMatches].  Return true if a mapping is found, false otherwise.
+/// Invoking this method will always return false, the return value is used
+/// during the recursive invocation.  The real return value is stored as
+/// [foundAllMatches].
 bool _findAllMatchingDeviceMappings(
   int order,
   List<DeviceSpec> deviceSpecs,
@@ -135,6 +141,8 @@ bool _findAllMatchingDeviceMappings(
   return false;
 }
 
+/// Create a copy of the map, this is a shallow copy since the key and value
+/// are not cloned.  The only thing we need is the mapping relations.
 Map<DeviceSpec, Device> mappingCopy(Map<DeviceSpec, Device> original) {
   Map<DeviceSpec, Device> copy = <DeviceSpec, Device>{};
   original.forEach((DeviceSpec spec, Device device) {
@@ -143,6 +151,7 @@ Map<DeviceSpec, Device> mappingCopy(Map<DeviceSpec, Device> original) {
   return copy;
 }
 
+/// Print a collection of matches which is iterable.
 void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
   StringBuffer sb = new StringBuffer();
   int roundNum = 1;
