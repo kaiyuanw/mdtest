@@ -8,7 +8,7 @@ import 'dart:io';
 
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
-import '../match/match_util.dart';
+import '../algorithms/matching.dart';
 import '../globals.dart';
 import '../runner/mdtest_command.dart';
 
@@ -48,14 +48,16 @@ class RunCommand extends MDTestCommand {
       return 1;
     }
 
-    if (await runAllApps(deviceMapping) != 0) {
+    MDTestRunner runner = new MDTestRunner();
+
+    if (await runner.runAllApps(deviceMapping) != 0) {
       printError('Error when running applications');
       return 1;
     }
 
     await storeMatches(deviceMapping);
 
-    if (await runTest(_specs['test-path']) != 0) {
+    if (await runner.runTest(_specs['test-path']) != 0) {
       printError('Test execution exit with error.');
       return 1;
     }
@@ -68,80 +70,85 @@ class RunCommand extends MDTestCommand {
   }
 }
 
-List<Process> appProcesses;
+class MDTestRunner {
+  List<Process> appProcesses;
 
-/// Invoke runApp function for each device spec to device mapping in parallel
-Future<int> runAllApps(Map<DeviceSpec, Device> deviceMapping) async {
-  appProcesses = <Process>[];
-  List<Future<int>> runAppList = <Future<int>>[];
-  for (DeviceSpec deviceSpec in deviceMapping.keys) {
-    Device device = deviceMapping[deviceSpec];
-    runAppList.add(runApp(deviceSpec, device));
+  MDTestRunner() {
+    appProcesses = <Process>[];
   }
-  int res = 0;
-  List<int> results = await Future.wait(runAppList);
-  for (int result in results)
-      res += result;
-  return res == 0 ? 0 : 1;
-}
 
-/// Create a process that runs 'flutter run ...' command which installs and
-/// starts the app on the device.  The function finds a observatory port
-/// through the process output.  If no observatory port is found, then report
-/// error.
-Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
-  Process process = await Process.start(
-    'flutter',
-    ['run', '--no-resident', '-d', device.id, '--target=${deviceSpec.appPath}'],
-    workingDirectory: deviceSpec.appRootPath
-  );
-  appProcesses.add(process);
-  Stream lineStream = process.stdout
-                             .transform(new Utf8Decoder())
-                             .transform(new LineSplitter());
-  RegExp portPattern = new RegExp(r'Observatory listening on (http.*)');
-  await for (var line in lineStream) {
-    print(line.toString().trim());
-    Match portMatch = portPattern.firstMatch(line.toString());
-    if (portMatch != null) {
-      deviceSpec.observatoryUrl = portMatch.group(1);
-      break;
+  /// Invoke runApp function for each device spec to device mapping in parallel
+  Future<int> runAllApps(Map<DeviceSpec, Device> deviceMapping) async {
+    List<Future<int>> runAppList = <Future<int>>[];
+    for (DeviceSpec deviceSpec in deviceMapping.keys) {
+      Device device = deviceMapping[deviceSpec];
+      runAppList.add(runApp(deviceSpec, device));
     }
+    int res = 0;
+    List<int> results = await Future.wait(runAppList);
+    for (int result in results)
+        res += result;
+    return res == 0 ? 0 : 1;
   }
 
-  process.stderr.drain();
-
-  if (deviceSpec.observatoryUrl == null) {
-    printError('No observatory url is found.');
-    return 1;
-  }
-
-  return 0;
-}
-
-/// Create a process and invoke 'dart testPath' to run the test script.  After
-/// test result is returned (either pass or fail), kill all app processes and
-/// return the current process exit code
-Future<int> runTest(String testPath) async {
-  Process process = await Process.start('dart', ['$testPath']);
-  RegExp testStopPattern = new RegExp(r'All tests passed|Some tests failed');
-  Stream stdoutStream = process.stdout
+  /// Create a process that runs 'flutter run ...' command which installs and
+  /// starts the app on the device.  The function finds a observatory port
+  /// through the process output.  If no observatory port is found, then report
+  /// error.
+  Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
+    Process process = await Process.start(
+      'flutter',
+      ['run', '-d', device.id, '--target=${deviceSpec.appPath}'],
+      workingDirectory: deviceSpec.appRootPath
+    );
+    appProcesses.add(process);
+    Stream lineStream = process.stdout
                                .transform(new Utf8Decoder())
                                .transform(new LineSplitter());
-  await for (var line in stdoutStream) {
-    print(line.toString().trim());
-    if (testStopPattern.hasMatch(line.toString())) {
-      process.stderr.drain();
-      killAllProcesses(appProcesses);
-      break;
+    RegExp portPattern = new RegExp(r'Observatory listening on (http.*)');
+    await for (var line in lineStream) {
+      print(line.toString().trim());
+      Match portMatch = portPattern.firstMatch(line.toString());
+      if (portMatch != null) {
+        deviceSpec.observatoryUrl = portMatch.group(1);
+        break;
+      }
     }
-  }
-  return await process.exitCode;
-}
 
-/// Kill all given processes
-Future<Null> killAllProcesses(List<Process> processes) async {
-  for (Process process in processes) {
-    process.kill();
+    process.stderr.drain();
+
+    if (deviceSpec.observatoryUrl == null) {
+      printError('No observatory url is found.');
+      return 1;
+    }
+
+    return 0;
+  }
+
+  /// Create a process and invoke 'dart testPath' to run the test script.  After
+  /// test result is returned (either pass or fail), kill all app processes and
+  /// return the current process exit code
+  Future<int> runTest(String testPath) async {
+    Process process = await Process.start('dart', ['$testPath']);
+    RegExp testStopPattern = new RegExp(r'All tests passed|Some tests failed');
+    Stream stdoutStream = process.stdout
+                                 .transform(new Utf8Decoder())
+                                 .transform(new LineSplitter());
+    await for (var line in stdoutStream) {
+      print(line.toString().trim());
+      if (testStopPattern.hasMatch(line.toString())) {
+        process.stderr.drain();
+        killAppProcesses();
+        break;
+      }
+    }
+    return await process.exitCode;
+  }
+
+  /// Kill all app processes
+  Future<Null> killAppProcesses() async {
+    for (Process process in appProcesses) {
+      process.kill();
+    }
   }
 }

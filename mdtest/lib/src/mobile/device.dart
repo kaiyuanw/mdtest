@@ -5,9 +5,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'haskey.dart';
+import 'key_provider.dart';
 
-class Device implements HasKey {
+class Device implements ClusterKeyProvider {
   Device({
     this.id,
     this.modelName

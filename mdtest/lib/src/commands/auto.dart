@@ -6,9 +6,9 @@ import 'dart:async';
 
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
-import '../mobile/haskey.dart';
-import '../coverage/coverage.dart';
-import '../match/match_util.dart';
+import '../mobile/key_provider.dart';
+import '../algorithms/coverage.dart';
+import '../algorithms/matching.dart';
 import '../globals.dart';
 import '../commands/run.dart';
 import '../runner/mdtest_command.dart';
@@ -44,7 +44,7 @@ class AutoCommand extends MDTestCommand {
       = findIndividualMatches(allDeviceSpecs, _devices);
     List<Map<DeviceSpec, Device>> allDeviceMappings
       = findAllMatchingDeviceMappings(allDeviceSpecs, individualMatches);
-    if(allDeviceMappings == null) {
+    if(allDeviceMappings.isEmpty) {
       printError('No device specs to devices mapping is found.');
       return 1;
     }
@@ -53,26 +53,30 @@ class AutoCommand extends MDTestCommand {
     Map<String, List<DeviceSpec>> deviceSpecClusters
       = buildCluster(allDeviceSpecs);
 
-    init(deviceClusters, deviceSpecClusters);
-    Map<Coverage, Map<DeviceSpec, Device>> cov2match
-      = buildCoverage2MatchMapping(allDeviceMappings);
+    ClusterInfo clusterInfo = new ClusterInfo(deviceClusters, deviceSpecClusters);
+    Map<CoverageMatrix, Map<DeviceSpec, Device>> cov2match
+      = buildCoverage2MatchMapping(allDeviceMappings, clusterInfo);
     Set<Map<DeviceSpec, Device>> chosenMappings
-      = findMinimumMappings(cov2match);
+      = findMinimumMappings(cov2match, clusterInfo);
     printMatches(chosenMappings);
 
     List<int> errRounds = [];
     int roundNum = 1;
     for (Map<DeviceSpec, Device> deviceMapping in chosenMappings) {
-      if (await runAllApps(deviceMapping) != 0) {
+      MDTestRunner runner = new MDTestRunner();
+
+      if (await runner.runAllApps(deviceMapping) != 0) {
         printError('Error when running applications');
-        if (!errRounds.contains(roundNum)) errRounds.add(roundNum);
+        errRounds.add(roundNum);
+        continue;
       }
 
       await storeMatches(deviceMapping);
 
-      if (await runTest(_specs['test-path']) != 0) {
+      if (await runner.runTest(_specs['test-path']) != 0) {
         printError('Test execution exit with error.');
-        if (!errRounds.contains(roundNum)) errRounds.add(roundNum);
+        errRounds.add(roundNum);
+        continue;
       }
     }
 

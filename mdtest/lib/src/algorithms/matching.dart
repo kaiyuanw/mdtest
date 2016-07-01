@@ -87,23 +87,18 @@ Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
   await file.writeAsString(JSON.encode(matchesData));
 }
 
-bool foundAllMatches;
-
-/// Return all spec to device mappings, return null if no such mapping exists
+/// Return all spec to device mappings, return empty list if no such mapping
+/// exists
 List<Map<DeviceSpec, Device>> findAllMatchingDeviceMappings(
   List<DeviceSpec> deviceSpecs,
   Map<DeviceSpec, Set<Device>> individualMatches) {
   Map<DeviceSpec, Device> deviceMapping = <DeviceSpec, Device>{};
   Set<Device> visited = new Set<Device>();
-  foundAllMatches = false;
   List<Map<DeviceSpec, Device>> allMatches = <Map<DeviceSpec, Device>>[];
   _findAllMatchingDeviceMappings(
     0, deviceSpecs, individualMatches,
     visited, deviceMapping, allMatches
   );
-  if (!foundAllMatches) {
-    return null;
-  }
   return allMatches;
 }
 
@@ -120,10 +115,8 @@ bool _findAllMatchingDeviceMappings(
   Map<DeviceSpec, Device> deviceMapping,
   List<Map<DeviceSpec, Device>> allMatches
 ) {
-  if(order == deviceSpecs.length) {
-    foundAllMatches = true;
+  if(order == deviceSpecs.length)
     return true;
-  }
   DeviceSpec deviceSpec = deviceSpecs[order];
   Set<Device> matchedDevices = individualMatches[deviceSpec];
   for(Device candidate in matchedDevices) {
@@ -132,23 +125,13 @@ bool _findAllMatchingDeviceMappings(
       if(_findAllMatchingDeviceMappings(
         order + 1, deviceSpecs, individualMatches,
         visited, deviceMapping, allMatches)) {
-        allMatches.add(mappingCopy(deviceMapping));
+        allMatches.add(new Map.from(deviceMapping));
       }
       visited.remove(candidate);
       deviceMapping.remove(deviceSpec);
     }
   }
   return false;
-}
-
-/// Create a copy of the map, this is a shallow copy since the key and value
-/// are not cloned.  The only thing we need is the mapping relations.
-Map<DeviceSpec, Device> mappingCopy(Map<DeviceSpec, Device> original) {
-  Map<DeviceSpec, Device> copy = <DeviceSpec, Device>{};
-  original.forEach((DeviceSpec spec, Device device) {
-    copy[spec] = device;
-  });
-  return copy;
 }
 
 /// Print a collection of matches which is iterable.
@@ -159,7 +142,9 @@ void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
   for (Map<DeviceSpec, Device> match in matches) {
     sb.writeln('Round $roundNum:');
     match.forEach((DeviceSpec spec, Device device) {
-      sb.writeln('$spec -> $device');
+      sb.writeln('[Spec Cluster Key: ${spec.clusterKey()}]'
+                 ' -> '
+                 '[Device Cluster Key: ${device.clusterKey()}]');
     });
     roundNum++;
   }

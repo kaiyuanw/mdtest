@@ -9,10 +9,10 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'device.dart';
-import 'haskey.dart';
+import 'key_provider.dart';
 import '../globals.dart';
 
-class DeviceSpec implements HasKey {
+class DeviceSpec implements ClusterKeyProvider {
   DeviceSpec(
     {
       this.nickName,
