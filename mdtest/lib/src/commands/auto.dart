@@ -4,10 +4,11 @@
 
 import 'dart:async';
 
-import 'runner.dart';
+import 'helper.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
 import '../mobile/key_provider.dart';
+import '../mobile/android.dart';
 import '../algorithms/coverage.dart';
 import '../algorithms/matching.dart';
 import '../globals.dart';
@@ -67,7 +68,7 @@ class AutoCommand extends MDTestCommand {
 
       if (await runner.runAllApps(deviceMapping) != 0) {
         printError('Error when running applications');
-        errRounds.add(roundNum);
+        errRounds.add(roundNum++);
         continue;
       }
 
@@ -75,13 +76,18 @@ class AutoCommand extends MDTestCommand {
 
       if (await runner.runTest(_specs['test-path']) != 0) {
         printError('Test execution exit with error.');
-        errRounds.add(roundNum);
+        errRounds.add(roundNum++);
         continue;
       }
     }
 
     if (errRounds.isNotEmpty) {
       printError('Error in Round #${errRounds.join(", #")}');
+      return 1;
+    }
+
+    if (await cleanUp(_devices) != 0) {
+      printError('Cannot uninstall testing apps from devices');
       return 1;
     }
 

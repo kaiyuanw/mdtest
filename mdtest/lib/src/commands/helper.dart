@@ -8,6 +8,7 @@ import 'dart:io';
 
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
+import '../mobile/android.dart';
 import '../globals.dart';
 
 class MDTestRunner {
@@ -36,9 +37,14 @@ class MDTestRunner {
   /// through the process output.  If no observatory port is found, then report
   /// error.
   Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
+    if (await wakeUp(device) != 0) {
+      printError('Device ${device.id} fails to wake up.');
+      return 1;
+    }
+
     Process process = await Process.start(
-      'flutter',
-      ['run', '-d', device.id, '--target=${deviceSpec.appPath}'],
+      'bash',
+      ['-c', 'flutter run -d ${device.id} --target=${deviceSpec.appPath}'],
       workingDirectory: deviceSpec.appRootPath
     );
     appProcesses.add(process);
@@ -76,12 +82,11 @@ class MDTestRunner {
                                  .transform(new LineSplitter());
     await for (var line in stdoutStream) {
       print(line.toString().trim());
-      if (testStopPattern.hasMatch(line.toString())) {
-        process.stderr.drain();
-        killAppProcesses();
+      if (testStopPattern.hasMatch(line.toString()))
         break;
-      }
     }
+    killAppProcesses();
+    process.stderr.drain();
     return await process.exitCode;
   }
 
