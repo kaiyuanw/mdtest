@@ -6,7 +6,7 @@ import 'package:dlog/dlog.dart' show Table;
 
 import '../mobile/device.dart' show Device;
 import '../mobile/device_spec.dart' show DeviceSpec;
-import '../algorithms/util.dart';
+import '../util.dart';
 
 class ClusterInfo {
   Map<String, List<Device>> _deviceClusters;
