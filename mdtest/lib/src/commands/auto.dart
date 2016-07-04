@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
+import 'runner.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
 import '../mobile/key_provider.dart';
 import '../algorithms/coverage.dart';
 import '../algorithms/matching.dart';
 import '../globals.dart';
-import '../commands/run.dart';
 import '../runner/mdtest_command.dart';
 
 class AutoCommand extends MDTestCommand {
