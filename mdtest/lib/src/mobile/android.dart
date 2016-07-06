@@ -58,7 +58,8 @@ Future<int> wakeUp(Device device) async {
   return await wakeUpProcess.exitCode;
 }
 
-/// Uninstall testing apps
+/// List running third-party apps and uninstall them.  The goal is to uninstall
+/// testing apps
 Future<int> cleanUp(List<Device> devices) async {
   int result = 0;
   for (Device device in devices) {
