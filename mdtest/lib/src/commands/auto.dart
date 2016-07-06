@@ -90,7 +90,6 @@ class AutoCommand extends MDTestCommand {
       printError('Cannot uninstall testing apps from devices');
       return 1;
     }
-
     return 0;
   }
 
