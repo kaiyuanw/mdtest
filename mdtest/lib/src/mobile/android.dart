@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:io';
 
 import '../mobile/device.dart';
@@ -14,11 +15,11 @@ const String lockProp = 'mHoldingWakeLockSuspendBlocker';
 /// Check if the device is locked
 Future<bool> _deviceIsLocked(Device device) async {
   Process process = await Process.start(
-    'bash',
-    ['-c', 'adb -s ${device.id} shell dumpsys power | grep \'$lockProp\'']
+    'adb',
+    ['-s', '${device.id}', 'shell', 'dumpsys', 'power']
   );
   bool isLocked;
-  RegExp lockStatusPattern = new RegExp(r'mHoldingWakeLockSuspendBlocker=(.*)');
+  RegExp lockStatusPattern = new RegExp(lockProp + r'=(.*)');
   Stream lineStream = process.stdout
                         .transform(new Utf8Decoder())
                         .transform(new LineSplitter());
@@ -37,7 +38,7 @@ Future<bool> _deviceIsLocked(Device device) async {
 }
 
 /// Wake up devices if the device is locked
-Future<int> wakeUp(Device device) async {
+Future<int> unlockDevice(Device device) async {
 
   bool isLocked = await _deviceIsLocked(device);
 
@@ -49,8 +50,8 @@ Future<int> wakeUp(Device device) async {
   if (!isLocked) return 0;
 
   Process wakeUpProcess = await Process.start(
-    'bash',
-    ['-c', 'adb -s ${device.id} shell input keyevent 82']
+    'adb',
+    ['-s', '${device.id}', 'shell', 'input', 'keyevent', 'KEYCODE_MENU']
   );
   wakeUpProcess.stdout.drain();
   wakeUpProcess.stderr.drain();
@@ -89,7 +90,7 @@ Future<int> cleanUp(List<Device> devices) async {
     for (String package in packages) {
       Process p = await Process.start(
         'bash',
-        ['-c', 'adb -s ${device.id} uninstall $package']
+        ['-c', 'adb -s ${device.id} shell am force-stop $package']
       );
       Stream lineStream = p.stdout
                            .transform(new Utf8Decoder())
@@ -102,4 +103,72 @@ Future<int> cleanUp(List<Device> devices) async {
     }
   }
   return result == 0 ? 0 : 1;
+}
+
+/// Get device property
+Future<String> getProperty(String deviceID, String propName) async {
+  ProcessResult results = await Process.run('adb', ['-s', deviceID, 'shell', 'getprop', propName]);
+  return results.stdout.toString().trim();
+}
+
+/// Get device pixels and dpi to compute screen diagonal size in inches
+Future<String> getScreenSize(String deviceID) async {
+  Process sizeProcess = await Process.start(
+    'bash',
+    ['-c', 'adb -s $deviceID shell wm size']
+  );
+  RegExp sizePattern = new RegExp(r'Physical size:\s*(\d+)x(\d+)');
+  Stream sizeLineStream = sizeProcess.stdout
+                                     .transform(new Utf8Decoder())
+                                    .transform(new LineSplitter());
+  int xSize;
+  int ySize;
+  await for (var line in sizeLineStream) {
+    Match sizeMatcher = sizePattern.firstMatch(line.toString());
+    if (sizeMatcher != null) {
+      xSize = int.parse(sizeMatcher.group(1));
+      ySize = int.parse(sizeMatcher.group(2));
+      break;
+    }
+  }
+
+  if (xSize == null || ySize == null) {
+    printError('Screen size not found.');
+    return null;
+  }
+
+  sizeProcess.stderr.drain();
+
+  Process densityProcess = await Process.start(
+    'bash',
+    ['-c', 'adb -s $deviceID shell wm density']
+  );
+  RegExp densityPattern = new RegExp(r'Physical density:\s*(\d+)');
+  Stream densityLineStream = densityProcess.stdout
+                                           .transform(new Utf8Decoder())
+                                           .transform(new LineSplitter());
+  int density;
+  await for (var line in densityLineStream) {
+    Match densityMatcher = densityPattern.firstMatch(line.toString());
+    if (densityMatcher != null) {
+      density = int.parse(densityMatcher.group(1));
+      break;
+    }
+  }
+
+  if (density == null) {
+    printError('Density not found.');
+    return null;
+  }
+
+  densityProcess.stderr.drain();
+
+  double xInch = xSize / density;
+  double yInch = ySize / density;
+  double diagonalSize = sqrt(xInch * xInch + yInch * yInch);
+
+  if (diagonalSize < 3.5) return 'small';
+  else if (diagonalSize < 5) return 'normal';
+  else if (diagonalSize < 8) return 'large';
+  else return 'xlarge';
 }

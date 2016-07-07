@@ -37,7 +37,7 @@ class MDTestRunner {
   /// through the process output.  If no observatory port is found, then report
   /// error.
   Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
-    if (await wakeUp(device) != 0) {
+    if (await unlockDevice(device) != 0) {
       printError('Device ${device.id} fails to wake up.');
       return 1;
     }
