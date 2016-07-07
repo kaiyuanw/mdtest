@@ -51,14 +51,14 @@ Future<int> unlockDevice(Device device) async {
 
   if (!isLocked) return 0;
 
-  Process wakeUpProcess = await Process.start(
+  Process wakeUpAndUnlockProcess = await Process.start(
     'adb',
     ['-s', '${device.id}', 'shell', 'input', 'keyevent', 'KEYCODE_MENU']
   );
-  wakeUpProcess.stdout.drain();
-  wakeUpProcess.stderr.drain();
+  wakeUpAndUnlockProcess.stdout.drain();
+  wakeUpAndUnlockProcess.stderr.drain();
 
-  return await wakeUpProcess.exitCode;
+  return await wakeUpAndUnlockProcess.exitCode;
 }
 
 /// List running third-party apps and uninstall them.  The goal is to uninstall
