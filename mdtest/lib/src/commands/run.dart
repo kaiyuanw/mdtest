@@ -52,6 +52,7 @@ class RunCommand extends MDTestCommand {
 
     if (await runner.runAllApps(deviceMapping) != 0) {
       printError('Error when running applications');
+      await uninstallTestedApps(deviceMapping);
       return 1;
     }
 
@@ -59,13 +60,11 @@ class RunCommand extends MDTestCommand {
 
     if (await runner.runTest(_specs['test-path']) != 0) {
       printError('Test execution exit with error.');
+      await uninstallTestedApps(deviceMapping);
       return 1;
     }
 
-    if (await cleanUp(_devices) != 0) {
-      printError('Cannot uninstall testing apps from devices');
-      return 1;
-    }
+    await uninstallTestedApps(deviceMapping);
 
     return 0;
   }

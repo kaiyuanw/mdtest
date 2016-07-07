@@ -10,14 +10,14 @@ import 'android.dart';
 
 class Device implements ClusterKeyProvider {
   Device({
-    this.id,
-    this.modelName,
-    this.screenSize
+    this.properties
   });
 
-  final String id;
-  final String modelName;
-  final String screenSize;
+  Map<String, String> properties;
+
+  String get id => properties['device-id'];
+  String get modelName => properties['model-name'];
+  String get screenSize => properties['screen-size'];
 
   @override
   String clusterKey() {
@@ -25,7 +25,8 @@ class Device implements ClusterKeyProvider {
   }
 
   @override
-  String toString() => '<id: $id, model-name: $modelName>';
+  String toString()
+    => '<id: $id, model-name: $modelName, screen-size: $screenSize>';
 }
 
 Future<List<Device>> getDevices() async {
@@ -74,8 +75,10 @@ Future<List<String>> _getDeviceIDs() async {
 
 Future<Device> _collectDeviceProps(String deviceID) async {
   return new Device(
-    id: deviceID,
-    modelName: await getProperty(deviceID, 'ro.product.model'),
-    screenSize: await getScreenSize(deviceID)
+    properties: <String, String> {
+      'device-id': deviceID,
+      'model-name': await getProperty(deviceID, 'ro.product.model'),
+      'screen-size': await getScreenSize(deviceID)
+    }
   );
 }

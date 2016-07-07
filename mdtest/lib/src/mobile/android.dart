@@ -8,7 +8,9 @@ import 'dart:math';
 import 'dart:io';
 
 import '../mobile/device.dart';
+import '../mobile/device_spec.dart';
 import '../globals.dart';
+import '../util.dart';
 
 const String lockProp = 'mHoldingWakeLockSuspendBlocker';
 
@@ -61,61 +63,66 @@ Future<int> unlockDevice(Device device) async {
 
 /// List running third-party apps and uninstall them.  The goal is to uninstall
 /// testing apps
-Future<int> cleanUp(List<Device> devices) async {
+Future<int> uninstallApps(Map<DeviceSpec, Device> deviceMapping) async {
   int result = 0;
-  for (Device device in devices) {
-    List<String> packages = <String>[];
-    Process process = await Process.start(
-      'bash',
-      [
-        '-c',
-        'adb -s ${device.id} shell ps|grep -v root|grep -v system|'
-        'grep -v NAME|grep -v shell|grep -v smartcard|'
-        'grep -v androidshmservice|grep -v bluetooth|grep -v radio|'
-        'grep -v nfc|grep -v "com.android."|grep -v "android.process."|'
-        'grep -v "com.google.android."|grep -v "com.sec.android."|'
-        'grep -v "com.google.process."|grep -v "com.samsung.android."|'
-        'grep -v "com.smlds" |awk \'\{print \$9\}\''
-      ]
-    );
-    Stream stdoutStream = process.stdout
-                                 .transform(new Utf8Decoder())
-                                 .transform(new LineSplitter());
-    await for (var line in stdoutStream) {
-      packages.add(line.toString().trim());
-    }
-    process.stderr.drain();
-    result += await process.exitCode;
 
-    for (String package in packages) {
-      Process p = await Process.start(
-        'bash',
-        ['-c', 'adb -s ${device.id} shell am force-stop $package']
-      );
-      Stream lineStream = p.stdout
-                           .transform(new Utf8Decoder())
-                           .transform(new LineSplitter());
-      await for (var line in lineStream) {
-        print('Uninstall $package on device ${device.id}: ${line.toString().trim()}');
-      }
-      p.stderr.drain();
-      result += await p.exitCode;
+  for (DeviceSpec spec in deviceMapping.keys) {
+    Device device = deviceMapping[spec];
+
+    String androidManifestPath
+      = normalizePath(spec.appRootPath, 'android/AndroidManifest.xml');
+    String androidManifest = await new File(androidManifestPath).readAsString();
+
+    RegExp packagePattern
+      = new RegExp(r'<manifest[\s\S]*?package="(\S+)"\s+[\s\S]*?>', multiLine: true);
+    Match packageMatcher = packagePattern.firstMatch(androidManifest);
+    if (packageMatcher == null) {
+      printError('Package name not found in $androidManifestPath');
+      return 1;
     }
+    String packageName = packageMatcher.group(1);
+
+    Process uninstallProcess = await Process.start(
+      'adb',
+      ['-s', '${device.id}', 'uninstall', '$packageName']
+    );
+
+    Stream lineStream = uninstallProcess.stdout
+                         .transform(new Utf8Decoder())
+                         .transform(new LineSplitter());
+    await for (var line in lineStream) {
+      print('Uninstall $packageName on device ${device.id}: ${line.toString().trim()}');
+    }
+
+    uninstallProcess.stderr.drain();
+    result += await uninstallProcess.exitCode;
   }
+
   return result == 0 ? 0 : 1;
+}
+
+Future<Null> uninstallTestedApps(
+  Map<DeviceSpec, Device> deviceMapping
+) async {
+  if (await uninstallApps(deviceMapping) != 0) {
+    printError('Cannot uninstall testing apps from devices');
+  }
 }
 
 /// Get device property
 Future<String> getProperty(String deviceID, String propName) async {
-  ProcessResult results = await Process.run('adb', ['-s', deviceID, 'shell', 'getprop', propName]);
+  ProcessResult results = await Process.run(
+    'adb',
+    ['-s', deviceID, 'shell', 'getprop', propName]
+  );
   return results.stdout.toString().trim();
 }
 
 /// Get device pixels and dpi to compute screen diagonal size in inches
 Future<String> getScreenSize(String deviceID) async {
   Process sizeProcess = await Process.start(
-    'bash',
-    ['-c', 'adb -s $deviceID shell wm size']
+    'adb',
+    ['-s', '$deviceID', 'shell', 'wm', 'size']
   );
   RegExp sizePattern = new RegExp(r'Physical size:\s*(\d+)x(\d+)');
   Stream sizeLineStream = sizeProcess.stdout
@@ -140,8 +147,8 @@ Future<String> getScreenSize(String deviceID) async {
   sizeProcess.stderr.drain();
 
   Process densityProcess = await Process.start(
-    'bash',
-    ['-c', 'adb -s $deviceID shell wm density']
+    'adb',
+    ['-s', '$deviceID', 'shell', 'wm', 'density']
   );
   RegExp densityPattern = new RegExp(r'Physical density:\s*(\d+)');
   Stream densityLineStream = densityProcess.stdout

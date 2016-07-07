@@ -43,8 +43,8 @@ class MDTestRunner {
     }
 
     Process process = await Process.start(
-      'bash',
-      ['-c', 'flutter run -d ${device.id} --target=${deviceSpec.appPath}'],
+      'flutter',
+      ['run', '-d', '${device.id}', '--target=${deviceSpec.appPath}'],
       workingDirectory: deviceSpec.appRootPath
     );
     appProcesses.add(process);

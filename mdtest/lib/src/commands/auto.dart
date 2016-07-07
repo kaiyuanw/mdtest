@@ -68,6 +68,7 @@ class AutoCommand extends MDTestCommand {
 
       if (await runner.runAllApps(deviceMapping) != 0) {
         printError('Error when running applications');
+        await uninstallTestedApps(deviceMapping);
         errRounds.add(roundNum++);
         continue;
       }
@@ -76,9 +77,12 @@ class AutoCommand extends MDTestCommand {
 
       if (await runner.runTest(_specs['test-path']) != 0) {
         printError('Test execution exit with error.');
+        await uninstallTestedApps(deviceMapping);
         errRounds.add(roundNum++);
         continue;
       }
+
+      await uninstallTestedApps(deviceMapping);
     }
 
     if (errRounds.isNotEmpty) {
@@ -86,10 +90,6 @@ class AutoCommand extends MDTestCommand {
       return 1;
     }
 
-    if (await cleanUp(_devices) != 0) {
-      printError('Cannot uninstall testing apps from devices');
-      return 1;
-    }
     return 0;
   }
 
