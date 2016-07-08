@@ -39,7 +39,7 @@ Future<bool> _deviceIsLocked(Device device) async {
   return isLocked;
 }
 
-/// Wake up devices if the device is locked
+/// Unlock devices if the device is locked
 Future<int> unlockDevice(Device device) async {
 
   bool isLocked = await _deviceIsLocked(device);
@@ -61,9 +61,8 @@ Future<int> unlockDevice(Device device) async {
   return await wakeUpAndUnlockProcess.exitCode;
 }
 
-/// List running third-party apps and uninstall them.  The goal is to uninstall
-/// testing apps
-Future<int> uninstallApps(Map<DeviceSpec, Device> deviceMapping) async {
+/// Uninstall tested apps
+Future<int> uninstallTestedApps(Map<DeviceSpec, Device> deviceMapping) async {
   int result = 0;
 
   for (DeviceSpec spec in deviceMapping.keys) {
@@ -98,15 +97,11 @@ Future<int> uninstallApps(Map<DeviceSpec, Device> deviceMapping) async {
     result += await uninstallProcess.exitCode;
   }
 
-  return result == 0 ? 0 : 1;
-}
-
-Future<Null> uninstallTestedApps(
-  Map<DeviceSpec, Device> deviceMapping
-) async {
-  if (await uninstallApps(deviceMapping) != 0) {
+  if (result != 0) {
     printError('Cannot uninstall testing apps from devices');
+    return 1;
   }
+  return 0;
 }
 
 /// Get device property
@@ -175,7 +170,7 @@ Future<String> getScreenSize(String deviceID) async {
   double diagonalSize = sqrt(xInch * xInch + yInch * yInch);
 
   if (diagonalSize < 3.5) return 'small';
-  else if (diagonalSize < 5) return 'normal';
-  else if (diagonalSize < 8) return 'large';
-  else return 'xlarge';
+  if (diagonalSize < 5) return 'normal';
+  if (diagonalSize < 8) return 'large';
+  return 'xlarge';
 }

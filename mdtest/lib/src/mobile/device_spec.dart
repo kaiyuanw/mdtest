@@ -12,37 +12,40 @@ import '../globals.dart';
 import '../util.dart';
 
 class DeviceSpec implements ClusterKeyProvider {
-  DeviceSpec(String nickname, { this.deviceSpec }) {
-    deviceSpec['nickname'] = nickname;
+  DeviceSpec(String nickname, { this.specProperties }) {
+    specProperties['nickname'] = nickname;
   }
 
-  Map<String, String> deviceSpec;
+  Map<String, String> specProperties;
 
-  String get nickName => deviceSpec['nickname'];
-  String get deviceID => deviceSpec['device-id'];
-  String get deviceModelName => deviceSpec['model-name'];
-  String get deviceScreenSize => deviceSpec['screen-size'];
-  String get appRootPath => deviceSpec['app-root'];
-  String get appPath => deviceSpec['app-path'];
-  String get observatoryUrl => deviceSpec['observatory-url'];
+  String get nickName => specProperties['nickname'];
+  String get deviceID => specProperties['device-id'];
+  String get deviceModelName => specProperties['model-name'];
+  String get deviceScreenSize => specProperties['screen-size'];
+  String get appRootPath => specProperties['app-root'];
+  String get appPath => specProperties['app-path'];
+  String get observatoryUrl => specProperties['observatory-url'];
   void set observatoryUrl(String url) {
-    deviceSpec['observatory-url'] = url;
+    specProperties['observatory-url'] = url;
   }
 
   /// Match if property names are not specified or equal to the device property.
   /// Checked property names includes: device-id, model-name, screen-size
   bool matches(Device device) {
-    return isNullOrEqual('device-id', device)
-           &&
-           isNullOrEqual('model-name', device)
-           &&
-           isNullOrEqual('screen-size', device);
+    List<String> checkedProperties = [
+      'device-id',
+      'model-name',
+      'screen-size'
+    ];
+    return checkedProperties.every(
+      (String propertyName) => isNullOrEqual(propertyName, device)
+    );
   }
 
   bool isNullOrEqual(String propertyName, Device device) {
-    return deviceSpec[propertyName] == null
+    return specProperties[propertyName] == null
            ||
-           deviceSpec[propertyName] == device.properties[propertyName];
+           specProperties[propertyName] == device.properties[propertyName];
   }
 
   @override
@@ -93,7 +96,7 @@ Future<List<DeviceSpec>> constructAllDeviceSpecs(dynamic allSpecs) async {
     deviceSpecs.add(
       new DeviceSpec(
         name,
-        deviceSpec: spec
+        specProperties: spec
       )
     );
   }
