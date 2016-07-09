@@ -61,7 +61,6 @@ class RunCommand extends MDTestCommand {
 
     if (await runner.runTest(_specs['test-path']) != 0) {
       printError('Test execution exit with error.');
-      await runner.killAppProcesses();
       await uninstallTestedApps(deviceMapping);
       return 1;
     }
@@ -76,7 +75,6 @@ class RunCommand extends MDTestCommand {
         return 1;
     }
 
-    await runner.killAppProcesses();
     await uninstallTestedApps(deviceMapping);
 
     return 0;

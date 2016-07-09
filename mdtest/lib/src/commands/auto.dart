@@ -81,7 +81,6 @@ class AutoCommand extends MDTestCommand {
 
       if (await runner.runTest(_specs['test-path']) != 0) {
         printError('Test execution exit with error.');
-        await runner.killAppProcesses();
         await uninstallTestedApps(deviceMapping);
         errRounds.add(roundNum++);
         continue;
@@ -92,7 +91,6 @@ class AutoCommand extends MDTestCommand {
         await runCoverageCollectors(collectorPool);
       }
 
-      await runner.killAppProcesses();
       await uninstallTestedApps(deviceMapping);
     }
 
