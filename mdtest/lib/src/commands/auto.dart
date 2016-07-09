@@ -13,6 +13,7 @@ import '../algorithms/coverage.dart';
 import '../algorithms/matching.dart';
 import '../globals.dart';
 import '../runner/mdtest_command.dart';
+import '../test/coverage_collector.dart';
 
 class AutoCommand extends MDTestCommand {
   @override
@@ -61,6 +62,9 @@ class AutoCommand extends MDTestCommand {
       = findMinimumMappings(cov2match, clusterInfo);
     printMatches(chosenMappings);
 
+    Map<String, CoverageCollector> collectorPool
+      = <String, CoverageCollector>{};
+
     List<int> errRounds = [];
     int roundNum = 1;
     for (Map<DeviceSpec, Device> deviceMapping in chosenMappings) {
@@ -77,11 +81,18 @@ class AutoCommand extends MDTestCommand {
 
       if (await runner.runTest(_specs['test-path']) != 0) {
         printError('Test execution exit with error.');
+        await runner.killAppProcesses();
         await uninstallTestedApps(deviceMapping);
         errRounds.add(roundNum++);
         continue;
       }
 
+      if (argResults['coverage']) {
+        buildCoverageCollectorPool(deviceMapping, collectorPool);
+        await runCoverageCollectors(collectorPool);
+      }
+
+      await runner.killAppProcesses();
       await uninstallTestedApps(deviceMapping);
     }
 
@@ -90,10 +101,16 @@ class AutoCommand extends MDTestCommand {
       return 1;
     }
 
+    if (argResults['coverage']) {
+      if (await computeAppCoverage(collectorPool, name) != 0)
+        return 1;
+    }
+
     return 0;
   }
 
   AutoCommand() {
     usesSpecsOption();
+    usesCoverageFlag();
   }
 }

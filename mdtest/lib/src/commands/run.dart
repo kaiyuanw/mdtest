@@ -11,6 +11,7 @@ import '../mobile/android.dart';
 import '../algorithms/matching.dart';
 import '../globals.dart';
 import '../runner/mdtest_command.dart';
+import '../test/coverage_collector.dart';
 
 class RunCommand extends MDTestCommand {
 
@@ -60,10 +61,22 @@ class RunCommand extends MDTestCommand {
 
     if (await runner.runTest(_specs['test-path']) != 0) {
       printError('Test execution exit with error.');
+      await runner.killAppProcesses();
       await uninstallTestedApps(deviceMapping);
       return 1;
     }
 
+    if (argResults['coverage']) {
+      print('Computing code coverage for all applications...');
+      Map<String, CoverageCollector> collectorPool
+        = <String, CoverageCollector>{};
+      buildCoverageCollectorPool(deviceMapping, collectorPool);
+      await runCoverageCollectors(collectorPool);
+      if (await computeAppCoverage(collectorPool, name) != 0)
+        return 1;
+    }
+
+    await runner.killAppProcesses();
     await uninstallTestedApps(deviceMapping);
 
     return 0;
@@ -71,5 +84,6 @@ class RunCommand extends MDTestCommand {
 
   RunCommand() {
     usesSpecsOption();
+    usesCoverageFlag();
   }
 }

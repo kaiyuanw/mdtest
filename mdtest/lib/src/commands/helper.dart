@@ -6,10 +6,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../base/common.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
 import '../mobile/android.dart';
+import '../test/coverage_collector.dart';
 import '../globals.dart';
+import '../util.dart';
 
 class MDTestRunner {
   List<Process> appProcesses;
@@ -85,7 +88,6 @@ class MDTestRunner {
       if (testStopPattern.hasMatch(line.toString()))
         break;
     }
-    killAppProcesses();
     process.stderr.drain();
     return await process.exitCode;
   }
@@ -96,4 +98,64 @@ class MDTestRunner {
       process.kill();
     }
   }
+}
+
+void buildCoverageCollectorPool(
+  Map<DeviceSpec, Device> deviceMapping,
+  Map<String, CoverageCollector> collectorPool
+) {
+  assert(collectorPool != null);
+  // Build app path to coverage collector mapping
+  for (DeviceSpec spec in deviceMapping.keys) {
+    if (!collectorPool.containsKey(spec.appRootPath)) {
+      CoverageCollector coverageCollector = new CoverageCollector();
+      coverageCollector.collectCoverage(spec.observatoryUrl);
+      collectorPool[spec.appRootPath] = coverageCollector;
+    } else {
+      collectorPool[spec.appRootPath].collectCoverage(spec.observatoryUrl);
+    }
+  }
+}
+
+Future<Null> runCoverageCollectors(
+  Map<String, CoverageCollector> collectorPool
+) async {
+  assert(collectorPool.isNotEmpty);
+  // Collect coverage for every application
+  for (CoverageCollector collector in collectorPool.values) {
+    await collector.finishPendingJobs();
+  }
+}
+
+/// Compute application code coverage and write coverage info in lcov format
+Future<int> computeAppCoverage(
+  Map<String, CoverageCollector> collectorPool,
+  String commandName
+) async {
+  if (collectorPool.isEmpty)
+    return 1;
+  // Write coverage info to coverage/code_coverage folder under each
+  // application folder
+  for (String appRootPath in collectorPool.keys) {
+    CoverageCollector collector = collectorPool[appRootPath];
+    String coverageData = await collector.finalizeCoverage(appRootPath);
+    if (coverageData == null)
+      return 1;
+
+    String coveragePath = normalizePath(
+      appRootPath,
+      '$defaultCodeCoverageDirectoryPath/cov_${commandName}_${generateTimeStamp()}.info'
+    );
+    try {
+      // Write coverage info to code_coverage folder
+      new File(coveragePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(coverageData, flush: true);
+      print('Writing code coverage to $coveragePath');
+    } on FileSystemException {
+      printError('Cannot write code coverage info to $coveragePath');
+      return 1;
+    }
+  }
+  return 0;
 }
