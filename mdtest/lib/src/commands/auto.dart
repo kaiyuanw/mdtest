@@ -79,16 +79,17 @@ class AutoCommand extends MDTestCommand {
 
       await storeMatches(deviceMapping);
 
-      if (await runner.runTest(_specs['test-path']) != 0) {
-        printError('Test execution exit with error.');
+      if (await runner.runAllTests(_specs['test-paths']) != 0) {
+        printError('Tests execution exit with error.');
         await uninstallTestedApps(deviceMapping);
         errRounds.add(roundNum++);
         continue;
       }
 
       if (argResults['coverage']) {
-        buildCoverageCollectorPool(deviceMapping, collectorPool);
-        await runCoverageCollectors(collectorPool);
+        print('Collecting code coverage hitmap ...');
+        buildCoverageCollectionTasks(deviceMapping, collectorPool);
+        await runCoverageCollectionTasks(collectorPool);
       }
 
       await uninstallTestedApps(deviceMapping);
@@ -100,7 +101,8 @@ class AutoCommand extends MDTestCommand {
     }
 
     if (argResults['coverage']) {
-      if (await computeAppCoverage(collectorPool, name) != 0)
+      print('Computing code coverage for each application ...');
+      if (await computeAppsCoverage(collectorPool, name) != 0)
         return 1;
     }
 

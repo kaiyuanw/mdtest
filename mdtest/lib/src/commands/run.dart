@@ -59,19 +59,20 @@ class RunCommand extends MDTestCommand {
 
     await storeMatches(deviceMapping);
 
-    if (await runner.runTest(_specs['test-path']) != 0) {
-      printError('Test execution exit with error.');
+    if (await runner.runAllTests(_specs['test-paths']) != 0) {
+      printError('Tests execution exit with error.');
       await uninstallTestedApps(deviceMapping);
       return 1;
     }
 
     if (argResults['coverage']) {
-      print('Computing code coverage for all applications...');
       Map<String, CoverageCollector> collectorPool
         = <String, CoverageCollector>{};
-      buildCoverageCollectorPool(deviceMapping, collectorPool);
-      await runCoverageCollectors(collectorPool);
-      if (await computeAppCoverage(collectorPool, name) != 0)
+      buildCoverageCollectionTasks(deviceMapping, collectorPool);
+      print('Collecting code coverage hitmap ...');
+      await runCoverageCollectionTasks(collectorPool);
+      print('Computing code coverage for each application ...');
+      if (await computeAppsCoverage(collectorPool, name) != 0)
         return 1;
     }
 

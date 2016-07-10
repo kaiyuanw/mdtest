@@ -74,6 +74,15 @@ class MDTestRunner {
     return 0;
   }
 
+  /// Run all tests
+  Future<int> runAllTests(Iterable<String> testPaths) async {
+    int result = 0;
+    for (String testPath in testPaths) {
+      result += await runTest(testPath);
+    }
+    return result == 0 ? 0 : 1;
+  }
+
   /// Create a process and invoke 'dart testPath' to run the test script.  After
   /// test result is returned (either pass or fail), kill all app processes and
   /// return the current process exit code
@@ -100,24 +109,24 @@ class MDTestRunner {
   }
 }
 
-void buildCoverageCollectorPool(
+/// Create a coverage collector for each application and assign a coverage
+/// collection task for the coverage collector
+void buildCoverageCollectionTasks(
   Map<DeviceSpec, Device> deviceMapping,
   Map<String, CoverageCollector> collectorPool
 ) {
   assert(collectorPool != null);
-  // Build app path to coverage collector mapping
-  for (DeviceSpec spec in deviceMapping.keys) {
-    if (!collectorPool.containsKey(spec.appRootPath)) {
-      CoverageCollector coverageCollector = new CoverageCollector();
-      coverageCollector.collectCoverage(spec.observatoryUrl);
-      collectorPool[spec.appRootPath] = coverageCollector;
-    } else {
-      collectorPool[spec.appRootPath].collectCoverage(spec.observatoryUrl);
-    }
-  }
+  // Build app path to coverage collector mapping and add collection tasks
+  deviceMapping.keys.forEach(
+    (DeviceSpec spec)
+      => collectorPool.putIfAbsent(
+        spec.appRootPath, () => new CoverageCollector()
+      ).collectCoverage(spec.observatoryUrl)
+  );
 }
 
-Future<Null> runCoverageCollectors(
+/// Run coverage collection tasks for each application
+Future<Null> runCoverageCollectionTasks(
   Map<String, CoverageCollector> collectorPool
 ) async {
   assert(collectorPool.isNotEmpty);
@@ -128,7 +137,7 @@ Future<Null> runCoverageCollectors(
 }
 
 /// Compute application code coverage and write coverage info in lcov format
-Future<int> computeAppCoverage(
+Future<int> computeAppsCoverage(
   Map<String, CoverageCollector> collectorPool,
   String commandName
 ) async {
@@ -144,7 +153,8 @@ Future<int> computeAppCoverage(
 
     String coveragePath = normalizePath(
       appRootPath,
-      '$defaultCodeCoverageDirectoryPath/cov_${commandName}_${generateTimeStamp()}.info'
+      '$defaultCodeCoverageDirectoryPath',
+      'cov_${commandName}_${generateTimeStamp()}.info'
     );
     try {
       // Write coverage info to code_coverage folder

@@ -37,8 +37,13 @@ int beginOfDiff(List<String> elements) {
   return minL;
 }
 
-String normalizePath(String rootPath, String relativePath) {
-  return path.normalize(path.join(rootPath, relativePath));
+String normalizePath(
+  String rootPath,
+  [String relativePath1, relativePath2]
+) {
+  return path.normalize(
+    path.join(rootPath, relativePath1, relativePath2)
+  );
 }
 
 String generateTimeStamp() {
