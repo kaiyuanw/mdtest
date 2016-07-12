@@ -61,3 +61,10 @@ bool deleteDirectories(Iterable<String> dirPaths) {
   }
   return true;
 }
+
+String repeatString(String str, int time) {
+  StringBuffer sb = new StringBuffer();
+  for (int i = 0; i < time; i++)
+    sb.write(str);
+  return sb.toString();
+}

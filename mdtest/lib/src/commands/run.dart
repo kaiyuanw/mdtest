@@ -59,11 +59,18 @@ class RunCommand extends MDTestCommand {
 
     await storeMatches(deviceMapping);
 
-    if (await runner.runAllTests(_specs['test-paths']) != 0) {
-      printError('Tests execution exit with error.');
-      await uninstallTestedApps(deviceMapping);
-      return 1;
+    bool testsFailed;
+    if (argResults['tap']) {
+      testsFailed = await runner.runAllTestsToTAP(_specs['test-paths']) != 0;
+    } else {
+      testsFailed = await runner.runAllTests(_specs['test-paths']) != 0;
     }
+
+    assert(testsFailed != null);
+    if (testsFailed)
+      printError('Some tests failed ...');
+    else
+      printInfo('All tests passed ...');
 
     if (argResults['coverage']) {
       Map<String, CoverageCollector> collectorPool
@@ -72,8 +79,10 @@ class RunCommand extends MDTestCommand {
       print('Collecting code coverage hitmap ...');
       await runCoverageCollectionTasks(collectorPool);
       print('Computing code coverage for each application ...');
-      if (await computeAppsCoverage(collectorPool, name) != 0)
+      if (await computeAppsCoverage(collectorPool, name) != 0) {
+        await uninstallTestedApps(deviceMapping);
         return 1;
+      }
     }
 
     await uninstallTestedApps(deviceMapping);
@@ -84,5 +93,6 @@ class RunCommand extends MDTestCommand {
   RunCommand() {
     usesSpecsOption();
     usesCoverageFlag();
+    usesTAPReportFlag();
   }
 }

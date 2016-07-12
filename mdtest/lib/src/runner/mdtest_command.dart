@@ -43,6 +43,14 @@ abstract class MDTestCommand extends Command {
     );
   }
 
+  void usesTAPReportFlag() {
+    argParser.addFlag('tap',
+      defaultsTo: false,
+      negatable: false,
+      help: 'Whether to use test anything protocol for test output.'
+    );
+  }
+
   @override
   Future<int> run() {
     Stopwatch stopwatch = new Stopwatch()..start();
