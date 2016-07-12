@@ -95,7 +95,7 @@ class AutoCommand extends MDTestCommand {
         printInfo('All tests in Round #${roundNum++} passed');
 
       if (argResults['coverage']) {
-        printTrace('Collecting code coverage hitmap ...');
+        printTrace('Collecting code coverage hitmap (this may take some time)');
         buildCoverageCollectionTasks(deviceMapping, collectorPool);
         await runCoverageCollectionTasks(collectorPool);
       }

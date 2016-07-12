@@ -8,6 +8,9 @@ import 'package:coverage/coverage.dart';
 import 'package:path/path.dart' as path;
 
 class CoverageCollector {
+  List<Future<Null>> _jobs = <Future<Null>>[];
+  Map<String, dynamic> _globalHitmap;
+
   void collectCoverage(String observatoryUrl) {
     RegExp urlPattern = new RegExp(r'http://(.*):(\d+)');
     Match urlMatcher = urlPattern.firstMatch(observatoryUrl);
@@ -39,9 +42,6 @@ class CoverageCollector {
   Future<Null> finishPendingJobs() async {
     await Future.wait(_jobs.toList(), eagerError: true);
   }
-
-  List<Future<Null>> _jobs = <Future<Null>>[];
-  Map<String, dynamic> _globalHitmap;
 
   Future<String> finalizeCoverage(String appRootPath) async {
     if (_globalHitmap == null)

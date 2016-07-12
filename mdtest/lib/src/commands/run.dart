@@ -68,15 +68,15 @@ class RunCommand extends MDTestCommand {
 
     assert(testsFailed != null);
     if (testsFailed)
-      printError('Some tests failed ...');
+      printError('Some tests failed');
     else
-      printInfo('All tests passed ...');
+      printInfo('All tests passed');
 
     if (argResults['coverage']) {
       Map<String, CoverageCollector> collectorPool
         = <String, CoverageCollector>{};
       buildCoverageCollectionTasks(deviceMapping, collectorPool);
-      printTrace('Collecting code coverage hitmap ...');
+      printTrace('Collecting code coverage hitmap (this may take some time)');
       await runCoverageCollectionTasks(collectorPool);
       printInfo('Computing code coverage for each application ...');
       if (await computeAppsCoverage(collectorPool, name) != 0) {
