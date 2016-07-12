@@ -89,13 +89,13 @@ class AutoCommand extends MDTestCommand {
 
       assert(testsFailed != null);
       if (testsFailed) {
-        print('Some tests in Round #$roundNum failed');
+        printInfo('Some tests in Round #$roundNum failed');
         failRounds.add(roundNum++);
       } else
-        print('All tests in Round #${roundNum++} passed');
+        printInfo('All tests in Round #${roundNum++} passed');
 
       if (argResults['coverage']) {
-        print('Collecting code coverage hitmap ...');
+        printTrace('Collecting code coverage hitmap ...');
         buildCoverageCollectionTasks(deviceMapping, collectorPool);
         await runCoverageCollectionTasks(collectorPool);
       }
@@ -109,12 +109,12 @@ class AutoCommand extends MDTestCommand {
     }
 
     if (failRounds.isNotEmpty)
-      printError('Some tests failed in Round #${failRounds.join(', #')}');
+      printInfo('Some tests failed in Round #${failRounds.join(', #')}');
     else
       printInfo('All tests in all rounds passed');
 
     if (argResults['coverage']) {
-      print('Computing code coverage for each application ...');
+      printInfo('Computing code coverage for each application ...');
       if (await computeAppsCoverage(collectorPool, name) != 0)
         return 1;
     }

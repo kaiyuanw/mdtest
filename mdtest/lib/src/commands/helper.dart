@@ -151,12 +151,12 @@ void buildCoverageCollectionTasks(
 ) {
   assert(collectorPool != null);
   // Build app path to coverage collector mapping and add collection tasks
-  deviceMapping.keys.forEach(
-    (DeviceSpec spec)
-      => collectorPool.putIfAbsent(
-        spec.appRootPath, () => new CoverageCollector()
-      ).collectCoverage(spec.observatoryUrl)
-  );
+  deviceMapping.keys.forEach((DeviceSpec spec) {
+    collectorPool.putIfAbsent(
+      spec.appRootPath,
+      () => new CoverageCollector()
+    ).collectCoverage(spec.observatoryUrl);
+  });
 }
 
 /// Run coverage collection tasks for each application
@@ -195,7 +195,7 @@ Future<int> computeAppsCoverage(
       new File(coveragePath)
         ..createSync(recursive: true)
         ..writeAsStringSync(coverageData, flush: true);
-      print('Writing code coverage to $coveragePath');
+      printInfo('Writing code coverage to $coveragePath');
     } on FileSystemException {
       printError('Cannot write code coverage info to $coveragePath');
       return 1;

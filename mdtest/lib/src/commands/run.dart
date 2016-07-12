@@ -76,9 +76,9 @@ class RunCommand extends MDTestCommand {
       Map<String, CoverageCollector> collectorPool
         = <String, CoverageCollector>{};
       buildCoverageCollectionTasks(deviceMapping, collectorPool);
-      print('Collecting code coverage hitmap ...');
+      printTrace('Collecting code coverage hitmap ...');
       await runCoverageCollectionTasks(collectorPool);
-      print('Computing code coverage for each application ...');
+      printInfo('Computing code coverage for each application ...');
       if (await computeAppsCoverage(collectorPool, name) != 0) {
         await uninstallTestedApps(deviceMapping);
         return 1;
