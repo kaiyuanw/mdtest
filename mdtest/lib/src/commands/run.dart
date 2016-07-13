@@ -30,7 +30,7 @@ class RunCommand extends MDTestCommand {
     printInfo('Running "mdtest run command" ...');
 
     this._specs = await loadSpecs(argResults['specs']);
-    printTrace(_specs);
+    printTrace(_specs.toString());
 
     this._devices = await getDevices();
     if (_devices.isEmpty) {
