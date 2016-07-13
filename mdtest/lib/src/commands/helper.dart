@@ -185,19 +185,23 @@ Future<int> computeAppsCoverage(
     if (coverageData == null)
       return 1;
 
-    String coveragePath = normalizePath(
+    String codeCoverageDirPath = normalizePath(
       appRootPath,
-      '$defaultCodeCoverageDirectoryPath',
-      'cov_${commandName}_${generateTimeStamp()}.info'
+      '$defaultCodeCoverageDirectoryPath'
+    );
+    File codeCoverageReport = getUniqueFile(
+      new Directory(codeCoverageDirPath),
+      'cov_$commandName',
+      'info'
     );
     try {
       // Write coverage info to code_coverage folder
-      new File(coveragePath)
+      codeCoverageReport
         ..createSync(recursive: true)
         ..writeAsStringSync(coverageData, flush: true);
-      printInfo('Writing code coverage to $coveragePath');
+      printTrace('Writing code coverage to ${codeCoverageReport.path}');
     } on FileSystemException {
-      printError('Cannot write code coverage info to $coveragePath');
+      printError('Cannot write code coverage info to ${codeCoverageReport.path}');
       return 1;
     }
   }

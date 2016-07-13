@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import '../util.dart';
-
 class TAPReporter {
   int currentTestNum;
   int passingTestsNum;
@@ -20,7 +18,7 @@ class TAPReporter {
 
   void printHeader() {
     print(
-      '${repeatString('=', 20)}\n'
+      '${'=' * 20}\n'
       'TAP version 13'
     );
   }
@@ -38,7 +36,7 @@ class TAPReporter {
       '${currentTestNum > 0 ? 1 : 0}..$currentTestNum\n'
       '# tests $currentTestNum\n'
       '# pass $passingTestsNum\n'
-      '${repeatString('=', 20)}'
+      '${'=' * 20}'
     );
   }
 
@@ -106,7 +104,7 @@ class TAPReporter {
     if (event.result != 'success') {
       if (event.error) {
         print('not ok ${++currentTestNum} - ${event.name}');
-        String tab = repeatString(' ', 2);
+        String tab = '${' ' * 2}';
         // Print error message
         event.errorReason.split('\n').forEach((String line) {
           print('$tab$line');

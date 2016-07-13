@@ -27,10 +27,10 @@ class RunCommand extends MDTestCommand {
 
   @override
   Future<int> runCore() async {
-    print('Running "mdtest run command" ...');
+    printInfo('Running "mdtest run command" ...');
 
     this._specs = await loadSpecs(argResults['specs']);
-    print(_specs);
+    printTrace(_specs);
 
     this._devices = await getDevices();
     if (_devices.isEmpty) {
@@ -60,17 +60,18 @@ class RunCommand extends MDTestCommand {
     await storeMatches(deviceMapping);
 
     bool testsFailed;
-    if (argResults['tap']) {
+    if (argResults['format'] == 'tap') {
       testsFailed = await runner.runAllTestsToTAP(_specs['test-paths']) != 0;
     } else {
       testsFailed = await runner.runAllTests(_specs['test-paths']) != 0;
     }
 
     assert(testsFailed != null);
-    if (testsFailed)
+    if (testsFailed) {
       printError('Some tests failed');
-    else
+    } else {
       printInfo('All tests passed');
+    }
 
     if (argResults['coverage']) {
       Map<String, CoverageCollector> collectorPool
@@ -93,6 +94,6 @@ class RunCommand extends MDTestCommand {
   RunCommand() {
     usesSpecsOption();
     usesCoverageFlag();
-    usesTAPReportFlag();
+    usesTAPReportOption();
   }
 }

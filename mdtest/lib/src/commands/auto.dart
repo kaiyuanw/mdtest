@@ -30,7 +30,7 @@ class AutoCommand extends MDTestCommand {
 
   @override
   Future<int> runCore() async {
-    print('Running "mdtest auto command" ...');
+    printInfo('Running "mdtest auto command" ...');
 
     this._specs = await loadSpecs(argResults['specs']);
 
@@ -81,7 +81,7 @@ class AutoCommand extends MDTestCommand {
       await storeMatches(deviceMapping);
 
       bool testsFailed;
-      if (argResults['tap']) {
+      if (argResults['format'] == 'tap') {
         testsFailed = await runner.runAllTestsToTAP(_specs['test-paths']) != 0;
       } else {
         testsFailed = await runner.runAllTests(_specs['test-paths']) != 0;
@@ -91,8 +91,9 @@ class AutoCommand extends MDTestCommand {
       if (testsFailed) {
         printInfo('Some tests in Round #$roundNum failed');
         failRounds.add(roundNum++);
-      } else
+      } else {
         printInfo('All tests in Round #${roundNum++} passed');
+      }
 
       if (argResults['coverage']) {
         printTrace('Collecting code coverage hitmap (this may take some time)');
@@ -108,10 +109,11 @@ class AutoCommand extends MDTestCommand {
       return 1;
     }
 
-    if (failRounds.isNotEmpty)
+    if (failRounds.isNotEmpty) {
       printInfo('Some tests failed in Round #${failRounds.join(', #')}');
-    else
+    } else {
       printInfo('All tests in all rounds passed');
+    }
 
     if (argResults['coverage']) {
       printInfo('Computing code coverage for each application ...');
@@ -125,6 +127,6 @@ class AutoCommand extends MDTestCommand {
   AutoCommand() {
     usesSpecsOption();
     usesCoverageFlag();
-    usesTAPReportFlag();
+    usesTAPReportOption();
   }
 }

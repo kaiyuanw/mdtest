@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'src/commands/run.dart';
@@ -20,6 +21,19 @@ Future<Null> main(List<String> args) async {
       dynamic result = await runner.run(args);
       exit(result is int ? result : 0);
     }, onError: (dynamic error, Chain chain) {
-      print(error);
+      if (error is UsageException) {
+        stderr.writeln(error.message);
+        stderr.writeln();
+        stderr.writeln(
+          "Run 'mdtest -h' (or 'mdtest <command> -h') for available "
+          "mdtest commands and options."
+        );
+        // Argument error exit code.
+        exit(64);
+      } else {
+        stderr.writeln();
+        stderr.writeln('Oops; mdtest has exit unexpectedly: "$error".');
+        exit(1);
+      }
     });
 }
