@@ -11,6 +11,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'src/commands/run.dart';
 import 'src/commands/auto.dart';
 import 'src/runner/mdtest_command_runner.dart';
+import 'src/util.dart';
 
 Future<Null> main(List<String> args) async {
   MDTestCommandRunner runner = new MDTestCommandRunner()
@@ -32,8 +33,34 @@ Future<Null> main(List<String> args) async {
         exit(64);
       } else {
         stderr.writeln();
-        stderr.writeln('Oops; mdtest has exit unexpectedly: "$error".');
+        stderr.writeln('Oops; mdtest has exit unexpectedly: "${error.toString()}".');
+
+        File crashReport = _createCrashReport(args, error, chain);
+        stderr.writeln(
+          'Crash report written to ${crashReport.path};\n'
+          'please let us know at https://github.com/vanadium/baku/issues.'
+        );
+
         exit(1);
       }
     });
+}
+
+File _createCrashReport(List<String> args, dynamic error, Chain chain) {
+  File crashFile = getUniqueFile(Directory.current, 'mdtest', 'log');
+
+  StringBuffer buffer = new StringBuffer();
+
+  buffer.writeln('MDTest crash report; please file at https://github.com/vanadium/baku/issues.\n');
+
+  buffer.writeln('## command\n');
+  buffer.writeln('mdtest ${args.join(' ')}\n');
+
+  buffer.writeln('## exception\n');
+  buffer.writeln('$error\n');
+  buffer.writeln('```\n${chain.terse}```\n');
+
+  crashFile.writeAsStringSync(buffer.toString());
+
+  return crashFile;
 }
