@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import '../globals.dart';
+
 class TAPReporter {
   int currentTestNum;
   int passingTestsNum;
@@ -18,7 +20,7 @@ class TAPReporter {
 
   void printHeader() {
     print(
-      '${'=' * 20}\n'
+      '\n'
       'TAP version 13'
     );
   }
@@ -33,23 +35,30 @@ class TAPReporter {
   void printSummary() {
     print(
       '\n'
-      '${currentTestNum > 0 ? 1 : 0}..$currentTestNum\n'
+      '1..$currentTestNum\n'
       '# tests $currentTestNum\n'
       '# pass $passingTestsNum\n'
-      '${'=' * 20}'
+      '\n'
     );
   }
 
   void convertToTAPFormat(var jsonLine) {
     if (jsonLine == null)
       return;
-    dynamic event = JSON.decode(jsonLine);
+    dynamic event;
+    try {
+      event = JSON.decode(jsonLine);
+    } on FormatException {
+      printError('File ${jsonLine.toString()} is not in JSON format.');
+      return;
+    }
+
     if (_isGroupEvent(event) && !_isGroupRootEvent(event)) {
       dynamic groupInfo = event['group'];
       bool skip = groupInfo['metadata']['skip'];
       if (skip) {
-        String skipReason = groupInfo['metadata']['skipReason'] ?? 'no reason specified.';
-        print('# skip ${groupInfo['name']}, reason: $skipReason');
+        String skipReason = groupInfo['metadata']['skipReason'] ?? '';
+        print('# skip ${groupInfo['name']} $skipReason');
       }
       print('# ${groupInfo['name']}');
     } else if (_isTestStartEvent(event)) {
@@ -57,7 +66,7 @@ class TAPReporter {
       int testID = testInfo['id'];
       String name = testInfo['name'];
       bool skip = testInfo['metadata']['skip'];
-      String skipReason = testInfo['metadata']['skipReason'] ?? 'no reason specified.';
+      String skipReason = testInfo['metadata']['skipReason'] ?? '';
       testEventMapping[testID] = new TestEvent(name, skip, skipReason);
     } else if (_isErrorEvent(event)) {
       int testID = event['testID'];
