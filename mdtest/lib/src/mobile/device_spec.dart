@@ -75,10 +75,12 @@ Future<dynamic> loadSpecs(ArgResults argResults) async {
     // from the command line argument
     List<String> testPathsFromSpec = newSpecs['test-paths']?.map(
       (String testPath) => normalizePath(rootPath, testPath)
-    )?.toList();
+    )?.toList() ?? [];
+    List<String> testPathsFromCommandLine
+      = listFilePathsFromGlobPatterns(argResults.rest) ?? [];
     newSpecs['test-paths'] = mergeWithoutDuplicate(
-      testPathsFromSpec ?? [],
-      listFilePathsFromGlobPatterns(argResults.rest) ?? []
+      testPathsFromSpec,
+      testPathsFromCommandLine
     );
     // Normalize the 'app-path' in the specs file
     newSpecs['devices'].forEach((String name, Map<String, String> map) {
