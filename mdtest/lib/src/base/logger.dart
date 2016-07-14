@@ -13,12 +13,12 @@ abstract class Logger {
 class StdoutLogger extends Logger {
   @override
   void info(String message) {
-    stderr.writeln('[info ] $message');
+    stderr.writeln('[INFO] $message');
   }
 
   @override
   void error(String message) {
-    stderr.writeln('[error] $message');
+    stderr.writeln('[ERROR] $message');
   }
 
   @override
@@ -28,16 +28,16 @@ class StdoutLogger extends Logger {
 class VerboseLogger extends Logger {
   @override
   void info(String message) {
-    stderr.writeln('[info ] $message');
+    stderr.writeln('[INFO] $message');
   }
 
   @override
   void error(String message) {
-    stderr.writeln('[error] $message');
+    stderr.writeln('[ERROR] $message');
   }
 
   @override
   void trace(String message) {
-    stderr.writeln('[trace] $message');
+    stderr.writeln('[TRACE] $message');
   }
 }
