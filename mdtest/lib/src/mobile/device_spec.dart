@@ -73,11 +73,12 @@ Future<dynamic> loadSpecs(ArgResults argResults) async {
     String rootPath = new File(specsPath).parent.absolute.path;
     // Normalize the 'test-path' in the specs file and add extra test paths
     // from the command line argument
-    List<String> testPathsFromSpec = newSpecs['test-paths']?.map(
-      (String testPath) => normalizePath(rootPath, testPath)
-    )?.toList() ?? [];
+    List<String> testPathsFromSpec
+      = listFilePathsFromGlobPatterns(rootPath, newSpecs['test-paths']);
+    print('Test paths from spec: $testPathsFromSpec');
     List<String> testPathsFromCommandLine
-      = listFilePathsFromGlobPatterns(argResults.rest) ?? [];
+      = listFilePathsFromGlobPatterns(Directory.current.path, argResults.rest);
+    print('Test paths from command line: $testPathsFromCommandLine');
     newSpecs['test-paths'] = mergeWithoutDuplicate(
       testPathsFromSpec,
       testPathsFromCommandLine
