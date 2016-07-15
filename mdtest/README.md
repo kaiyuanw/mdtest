@@ -1,10 +1,10 @@
 # mdtest: Multi-Device Applicatoin Testing Framework
 
-mdtest is a command line tool built on top of [flutter](https://flutter.io/) for
-integration testing.  The tool wraps several flutter commands and implements
+`mdtest` is a command line tool built on top of [flutter](https://flutter.io/)
+for integration testing.  The tool wraps several flutter commands and implements
 algorithms to deliver a robust end to end testing experience for multi-device
-applications.  The tool is targeted for flutter apps and provides a public
-wrapper of flutter driver API to allow testers write portable test scripts
+applications.  `mdtest` is targeted at flutter apps and provides a public
+wrapper of flutter driver API and allow testers to write portable test scripts
 across platforms.
 
 # Requirements:
@@ -26,8 +26,9 @@ across platforms.
 
 ## Clone from Github
 
-To get mdtest, use `git` to clone the [baku](https://github.com/vanadium/baku)
+To get `mdtest`, use `git` to clone the [baku](https://github.com/vanadium/baku)
 repository and then add the `mdtest` tool to `PATH`
+
 ```
 $ git clone git@github.com:vanadium/baku.git
 $ export PATH="$(pwd)/mdtest/bin:$PATH"
@@ -96,19 +97,19 @@ path from either the test spec or the command line, otherwise `mdtest` will
 complain.  "devices" attribute is required in the test spec.  You can list a
 number of device specs inside "devices" attribute.  Each device spec has a
 unique "$device_nickname" mapping to several device/application properties.  The
-"device-id" property is optional and should map to the device id if set.  The
-"model-name" property is optional and should map to the device model name if
-set.  The "screen-size" property is optional and the allowed values are
+"device-id" property is optional and should be the device id if set.  The
+"model-name" property is optional and should be the device model name if set.
+The "screen-size" property is optional and values can only be one of
 ["small"(<3.5), "normal"(>=3.5 && <5), "large"(>=5 && <8), "xlarge"(>=8)] where
-the size is measured by screen diagonal by inch.  The screen size generally
+the size is measured by screen diagonal in inches.  The screen size generally
 follows
 [Android Screen Support](https://developer.android.com/guide/practices/screens_support.html)
 with overlapping screen ranges resolved.  The "app-root" attribute specifies the
-path to the flutter app which you want to run on that device.  The "app-path"
+path to the flutter app which you want to run on the device.  The "app-path"
 attribute points to the instrumented flutter app that uses flutter driver
-plugin.  For more information, please see
+plugin.  For more information, please refer to
 [flutter integration testing](https://flutter.io/testing/#integration-testing).
-You can always specify more device specs by repeatedly adding more attributes.
+You can always specify more device specs by repeatedly adding attributes.
 
 The test spec file is required to run `mdtest`.  In a nut shell, the test spec
 is the way to tell `mdtest` what kind of devices you want your applications to
@@ -117,7 +118,7 @@ either uniquely by specifying the device id, or roughly by specifying some
 properties of the devices.  The device nickname refers to a device that
 satisfies your specification.  You can use the nickname to create a flutter
 driver in your test script.  The ability to roughly specify device requirements
-as well as the nickname reference makes your test script portable to any
+and refer a device by its nickname makes your test script portable to any
 platform anywhere in the world, as long as sufficient available devices are
 detected by `mdtest`.  The test scripts specified in the test spec should
 contain flutter driver tests for integration testing.
@@ -128,23 +129,23 @@ Currently, `mdtest` supports two commands: `run` and `auto`.  You can run
 `mdtest run args...` or `mdtest auto args...` to invoke the commands.  Run
 `mdtest -h` to list the supported commands and `mdtest command -h` for more
 information for that command.  `mdtest` has a global verbose flag `--verbose`,
-which will report more execution information to the user if set to true.
+which will report more information to the user during execution if set to true.
 
 ### Run
 
 `mdtest run` command is used to run test suite(s) on devices that `mdtest` finds
 according to the test spec.  The tool computes an app-device mapping based on
 the device requirements in the test spec.  The app-device mapping is bijective
-and is used to launch each application on the mapping device `mdtest` finds.  In
-this mode, `mdtest` will use the first app-device mapping it finds, then install
-and start the applications on devices and run test scripts.
+and is used to launch each application on the mapped device `mdtest` finds.  In
+this mode, `mdtest` will use the first app-device mapping it finds, and install
+and start the applications on devices to execute test scripts.
 
 * Arguments
   - `--spec` points to the path of the spec file
   - `--coverage` collects code coverage and stores the coverage info for each
    application under ${application_folder/coverage/code_coverage} if set
   - `--format` report test output in TAP format if set to tap, default is none
-   which means use the Dart test format
+   which uses the default dart-lang test output format
 
 ### Auto
 
@@ -152,21 +153,21 @@ and start the applications on devices and run test scripts.
 cover as many device settings for each unique application as possible.  More
 specifically, `mdtest` groups user specified applications based on the
 uniqueness of the application root path, and groups available devices based on
-model name (will support more grouping rules later).  Then, `mdtest` compute the
-maximum number of possible app group to device group mappings.  Finally,
+model name (will support more grouping rules later).  Then, `mdtest` computes
+the maximum number of possible app group to device group mappings.  Finally,
 `mdtest` will try to compute the smallest number of test runs to cover those
 maximum possible mappings.  The heuristic here is to make sure at least one app
 in each application group runs on at least one device in each device group
-possibly according to the test spec.  However, since the problem is a set cover
-problem and is NP-complete, `mdtest` uses a approximation algorithm that has a
-complexity of O(log(n)).
+possibly according to the test spec in some test run.  However, since the
+problem is a set cover problem and is NP-complete, `mdtest` uses a approximation
+algorithm that has a complexity of O(log(n)).
 
 * Arguments
   - `--spec` points to the path of the spec file
   - `--coverage` collects code coverage and stores the coverage info for each
    application under ${application_folder/coverage/code_coverage} if set
   - `--format` report test output in TAP format if set to tap, default is none
-   which means use the Dart test format
+   which uses the default dart-lang test output format
 
 ## Test Scripts
 
