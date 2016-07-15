@@ -146,6 +146,8 @@ and start the applications on devices to execute test scripts.
    application under ${application_folder/coverage/code_coverage} if set
   - `--format` report test output in TAP format if set to tap, default is none
    which uses the default dart-lang test output format
+  - The rest of the arguments would be either paths or glob patterns for the
+    test scripts
 
 ### Auto
 
@@ -168,6 +170,8 @@ algorithm that has a complexity of O(log(n)).
    application under ${application_folder/coverage/code_coverage} if set
   - `--format` report test output in TAP format if set to tap, default is none
    which uses the default dart-lang test output format
+  - The rest of the arguments would be either paths or glob patterns for the
+    test scripts
 
 ## Test Scripts
 
