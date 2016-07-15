@@ -10,16 +10,16 @@ across platforms.
 # Requirements:
 
 * OS
- - Linux (64 bit)
- - Mac OS X (64 bit)
+  - Linux (64 bit)
+  - Mac OS X (64 bit)
  
 * Tools
- - [Dart](https://www.dartlang.org/): must be installed and accessible from
+  - [Dart](https://www.dartlang.org/): must be installed and accessible from
    `PATH`
- - PUB: comes with Dart
- - [Flutter](https://flutter.io/): must be installed and accessible from `PATH`.
+  - PUB: comes with Dart
+  - [Flutter](https://flutter.io/): must be installed and accessible from `PATH`.
    `flutter doctor` should report no error
- - [ADB](http://developer.android.com/tools/help/adb.html): must be installed
+  - [ADB](http://developer.android.com/tools/help/adb.html): must be installed
    and accessible from `PATH`
 
 # Installing mdtest
@@ -33,21 +33,22 @@ $ git clone git@github.com:vanadium/baku.git
 $ export PATH="$(pwd)/mdtest/bin:$PATH"
 ```
 Open mdtest/pubspec.yaml file and make the following change:
- - replace
+
+replace
  ```
  dlog:
    path: ../../../../third_party/dart/dlog
  ```
- with
+with
  ```
  dlog:
  ```
- - replace
+replace
  ```
  flutter_driver:
    path: ../deps/flutter/packages/flutter_driver
  ```
- with
+with
  ```
  flutter_driver:
    path: ${path/to/flutter}/packages/flutter_driver
@@ -69,6 +70,7 @@ format and should follow the style below:
   "test-paths": [
     "${path/to/test_script1.dart}",
     "${path/to/test_script2.dart}",
+    "${path/to/*_test.dart}"
     ...
   ],
   "devices": {
@@ -86,36 +88,101 @@ format and should follow the style below:
 }
 ```
 
-All paths in the test spec should either be either absolute paths or paths
-relative to the test spec file.  The "test-paths" attribute is optional if you
-specify the test script path(s) from the command line when invoking `mdtest`.
-But you should at least specify a test path from either the test spec or the
-command line, otherwise `mdtest` will complain.  "devices" attribute is required
-in the test spec.  You can list a number of device specs inside "devices"
-attribute.  Each device spec has a unique "$device_nickname" mapping to several
-device/application properties.  The "device-id" property is optional and should
-map to the device id if set.  The "model-name" property is optional and should
-map to the device model name if set.  The "screen-size" property is optional and
-the allowed values are
+All paths in the test spec should either be absolute paths or paths relative to
+the test spec file.  You can also specify test paths using glob patterns.  The
+"test-paths" attribute is optional if you specify the test script path(s) from
+the command line when invoking `mdtest`.  But you should at least specify a test
+path from either the test spec or the command line, otherwise `mdtest` will
+complain.  "devices" attribute is required in the test spec.  You can list a
+number of device specs inside "devices" attribute.  Each device spec has a
+unique "$device_nickname" mapping to several device/application properties.  The
+"device-id" property is optional and should map to the device id if set.  The
+"model-name" property is optional and should map to the device model name if
+set.  The "screen-size" property is optional and the allowed values are
 ["small"(<3.5), "normal"(>=3.5 && <5), "large"(>=5 && <8), "xlarge"(>=8)] where
 the size is measured by screen diagonal by inch.  The screen size generally
 follows
 [Android Screen Support](https://developer.android.com/guide/practices/screens_support.html)
-but resolve the overlapping confusion.  The "app-root" attribute specifies the
+with overlapping screen ranges resolved.  The "app-root" attribute specifies the
 path to the flutter app which you want to run on that device.  The "app-path"
 attribute points to the instrumented flutter app that uses flutter driver
 plugin.  For more information, please see
 [flutter integration testing](https://flutter.io/testing/#integration-testing).
 You can always specify more device specs by repeatedly adding more attributes.
 
+The test spec file is required to run `mdtest`.  In a nut shell, the test spec
+is the way to tell `mdtest` what kind of devices you want your applications to
+run on.  The spec file gives you the flexibility to choose your app device
+either uniquely by specifying the device id, or roughly by specifying some
+properties of the devices.  The device nickname refers to a device that
+satisfies your specification.  You can use the nickname to create a flutter
+driver in your test script.  The ability to roughly specify device requirements
+as well as the nickname reference makes your test script portable to any
+platform anywhere in the world, as long as sufficient available devices are
+detected by `mdtest`.  The test scripts specified in the test spec should
+contain flutter driver tests for integration testing.
+
 ## Commands
 
-Currently, `mdtest` supports two commands: `run` and `auto`.
+Currently, `mdtest` supports two commands: `run` and `auto`.  You can run
+`mdtest run args...` or `mdtest auto args...` to invoke the commands.  Run
+`mdtest -h` to list the supported commands and `mdtest command -h` for more
+information for that command.  `mdtest` has a global verbose flag `--verbose`,
+which will report more execution information to the user if set to true.
 
 ### Run
 
-`mdtest run` command is used to run test suite(s) on devices that mdtest finds
-according to the test spec.
+`mdtest run` command is used to run test suite(s) on devices that `mdtest` finds
+according to the test spec.  The tool computes an app-device mapping based on
+the device requirements in the test spec.  The app-device mapping is bijective
+and is used to launch each application on the mapping device `mdtest` finds.  In
+this mode, `mdtest` will use the first app-device mapping it finds, then install
+and start the applications on devices and run test scripts.
 
-To build mdtest in a specific
-revision in the git history, simply checkout that revision and run mdtest.
+* Arguments
+  - `--spec` points to the path of the spec file
+  - `--coverage` collects code coverage and stores the coverage info for each
+   application under ${application_folder/coverage/code_coverage} if set
+  - `--format` report test output in TAP format if set to tap, default is none
+   which means use the Dart test format
+
+### Auto
+
+`mdtest auto` command is used to run test suite(s) in a small number of times to
+cover as many device settings for each unique application as possible.  More
+specifically, `mdtest` groups user specified applications based on the
+uniqueness of the application root path, and groups available devices based on
+model name (will support more grouping rules later).  Then, `mdtest` compute the
+maximum number of possible app group to device group mappings.  Finally,
+`mdtest` will try to compute the smallest number of test runs to cover those
+maximum possible mappings.  The heuristic here is to make sure at least one app
+in each application group runs on at least one device in each device group
+possibly according to the test spec.  However, since the problem is a set cover
+problem and is NP-complete, `mdtest` uses a approximation algorithm that has a
+complexity of O(log(n)).
+
+* Arguments
+  - `--spec` points to the path of the spec file
+  - `--coverage` collects code coverage and stores the coverage info for each
+   application under ${application_folder/coverage/code_coverage} if set
+  - `--format` report test output in TAP format if set to tap, default is none
+   which means use the Dart test format
+
+## Test Scripts
+
+`mdtest` provides a wrapper of flutter driver API and allows users to create a
+driver instance by a device nickname specified in the test spec.  To use this
+wrapper, you should add the following import statement in your test scripts:
+
+```
+import 'package:flutter_driver/flutter_driver.dart';
+import 'package:mdtest/driver_util.dart';
+```
+
+Then you can create a flutter driver instance like this:
+```
+FlutterDriver driver = await DriverUtil.connectByName('${device_nickname}');
+```
+
+The way to write integration tests for flutter apps follows
+[flutter integration testing](https://flutter.io/testing/#integration-testing).
