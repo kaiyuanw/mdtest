@@ -76,13 +76,19 @@ File getUniqueFile(Directory dir, String baseName, String ext) {
 /// patterns.  The order of the result follow the order of the given glob
 /// patterns, but the order of file paths corresponding to the same glob
 /// pattern is not guranteed.
-List<String> listFilePathsFromGlobPatterns(Iterable<String> globPatterns) {
+List<String> listFilePathsFromGlobPatterns(
+  String rootPath,
+  Iterable<String> globPatterns
+) {
   List<String> result = <String>[];
+  if (globPatterns == null) {
+    return result;
+  }
   Set<String> seen = new Set<String>();
   for (String globPattern in globPatterns) {
     Glob fileGlob = new Glob(globPattern);
     Iterable<String> filePaths = fileGlob.listSync().map(
-      (FileSystemEntity file) => normalizePath(Directory.current.path, file.path)
+      (FileSystemEntity file) => normalizePath(rootPath, file.path)
     );
     Set<String> neverSeen = new Set.from(filePaths).difference(seen);
     result.addAll(neverSeen);
