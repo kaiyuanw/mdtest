@@ -13,7 +13,7 @@ import '../globals.dart';
 class MDTestCommandRunner extends CommandRunner {
   MDTestCommandRunner() : super(
     'mdtest',
-    'Launch mdtest and run test script(s)'
+    'Launch mdtest and run tests'
   ) {
     argParser.addFlag('verbose',
         abbr: 'v',
