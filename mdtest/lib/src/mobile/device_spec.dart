@@ -51,7 +51,7 @@ class DeviceSpec implements ClusterKeyProvider {
   }
 
   @override
-  String clusterKey() {
+  String groupKey() {
     return appPath;
   }
 

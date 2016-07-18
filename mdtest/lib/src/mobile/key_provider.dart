@@ -3,13 +3,14 @@
 // license that can be found in the LICENSE file.
 
 abstract class ClusterKeyProvider {
-  String clusterKey();
+  /// key to group devices or specs
+  String groupKey();
 }
 
 Map<String, List<dynamic>> buildCluster(List<dynamic> elements) {
   Map<String, List<dynamic>> clusters = <String, List<dynamic>>{};
   elements.forEach((dynamic element) {
-    clusters.putIfAbsent(element.clusterKey(), () => <dynamic>[])
+    clusters.putIfAbsent(element.groupKey(), () => <dynamic>[])
             .add(element);
   });
   return clusters;
