@@ -12,7 +12,7 @@ across platforms.
 * Supported Operating Systems
   - Linux (64 bit)
   - Mac OS X (64 bit)
- 
+
 * Tools
   - [Dart](https://www.dartlang.org/): must be installed and accessible from
    `PATH`
@@ -118,7 +118,7 @@ device specs inside "devices" attribute.  Each device spec has a unique
 
  * `device-id` (optional): The "device-id" property is optional and should be
    the device id obtained by `flutter devices` if set.
-   
+
  * `model-name` (optional): The"model-name" property is optional and should be
    the device model name (e.g. Nexus 5) if set.
 
@@ -137,7 +137,7 @@ device specs inside "devices" attribute.  Each device spec has a unique
    flutter app that uses flutter driver plugin.  For more information, please
    refer to
    [flutter integration testing](https://flutter.io/testing/#integration-testing).
- 
+
 You can add arbitraty number of device specs by repeatedly adding attributes
 following the rules above.
 
