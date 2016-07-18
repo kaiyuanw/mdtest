@@ -48,7 +48,7 @@ Future<List<String>> _getDeviceIDs() async {
                              .transform(new LineSplitter());
   bool startReading = false;
   RegExp startPattern = new RegExp(r'List of devices attached');
-  RegExp deviceIDPattern = new RegExp(r'\s+(\w+)\s+.*');
+  RegExp deviceIDPattern = new RegExp(r'\s+(\S+)\s+.*');
   RegExp stopPattern = new RegExp(r'\d+ connected devices?|No devices detected');
   await for (var line in lineStream) {
     if (!startReading && startPattern.hasMatch(line.toString())) {

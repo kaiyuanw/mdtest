@@ -133,6 +133,7 @@ Future<String> getScreenSize(String deviceID) async {
       break;
     }
   }
+  print('XXX: $deviceID');
 
   if (xSize == null || ySize == null) {
     printError('Screen size not found.');
