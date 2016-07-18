@@ -47,7 +47,7 @@ Future<List<String>> _getDeviceIDs() async {
                              .transform(new Utf8Decoder())
                              .transform(new LineSplitter());
   bool startReading = false;
-  RegExp startPattern = new RegExp(r'\d+ connected device');
+  RegExp startPattern = new RegExp(r'\d+ connected device|No devices detected');
   RegExp deviceIDPattern = new RegExp(r'\d+ ms •.*•\s+(\S+)\s+•.*');
   RegExp stopPattern = new RegExp(r"'flutter devices' took \d+ms; exiting with code");
   await for (var line in lineStream) {
