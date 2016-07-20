@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-abstract class ClusterKeyProvider {
+abstract class GroupKeyProvider {
   /// key to group devices or specs
   String groupKey();
 }

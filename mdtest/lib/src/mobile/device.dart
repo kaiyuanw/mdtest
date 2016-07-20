@@ -8,7 +8,7 @@ import 'dart:io';
 import 'key_provider.dart';
 import 'android.dart';
 
-class Device implements ClusterKeyProvider {
+class Device implements GroupKeyProvider {
   Device({
     this.properties,
     String groupKey
