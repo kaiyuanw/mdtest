@@ -10,7 +10,6 @@ import 'dart:collection';
 import 'package:flutter_driver/flutter_driver.dart';
 
 import '../base/common.dart';
-import '../globals.dart';
 
 /// Singleton pattern is used to load config data only once.
 class Meta {
@@ -26,7 +25,7 @@ class Meta {
       File tempFile = new File('${systemTempDir.path}/$defaultTempSpecsName');
       // if temp spec file is not found, report error and exit
       if(!tempFile.existsSync()) {
-        printError('Multi-Drive temporary specs file not found.');
+        stderr.writeln('mdtest temporary specs file not found.');
         exit(1);
       }
       // decode specs assuming no exception, because the temp file is
@@ -63,9 +62,6 @@ class DriverMap extends IterableBase<FlutterDriver> {
     if (config.containsKey(nickname)) {
       if (!_map.containsKey(nickname)) {
         String observatoryUrl = config[nickname]['observatory-url'];
-        printTrace(
-          'Lazy initializing flutter driver from observatory url $observatoryUrl'
-        );
         // delegate to flutter driver connect method
         FlutterDriver driver
           = await FlutterDriver.connect(dartVmServiceUrl: '$observatoryUrl');
@@ -74,7 +70,7 @@ class DriverMap extends IterableBase<FlutterDriver> {
       }
       return _map[nickname];
     }
-    printError('Device nickname $nickname not found.');
+    stderr.writeln('Device nickname $nickname not found.');
     return null;
   }
 
