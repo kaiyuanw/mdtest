@@ -55,15 +55,16 @@ class AutoCommand extends MDTestCommand {
       return 1;
     }
 
-    Map<String, List<Device>> deviceClusters = buildCluster(_devices);
-    Map<String, List<DeviceSpec>> deviceSpecClusters
-      = buildCluster(allDeviceSpecs);
+    Map<String, List<Device>> deviceGroups = buildGroups(_devices);
+    Map<String, List<DeviceSpec>> deviceSpecGroups
+      = buildGroups(allDeviceSpecs);
 
-    GroupInfo clusterInfo = new GroupInfo(deviceClusters, deviceSpecClusters);
+    GroupInfo groupInfo = new GroupInfo(deviceGroups, deviceSpecGroups);
     Map<CoverageMatrix, Map<DeviceSpec, Device>> cov2match
-      = buildCoverage2MatchMapping(allDeviceMappings, clusterInfo);
+      = buildCoverage2MatchMapping(allDeviceMappings, groupInfo);
+    CoverageMatrix coverage = new CoverageMatrix(groupInfo);
     Set<Map<DeviceSpec, Device>> chosenMappings
-      = findMinimumMappings(cov2match, clusterInfo);
+      = findMinimumMappings(cov2match, coverage);
     printMatches(chosenMappings);
 
     Map<String, CoverageCollector> collectorPool
