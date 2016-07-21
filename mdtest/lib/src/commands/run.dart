@@ -37,7 +37,6 @@ class RunCommand extends MDTestCommand {
     }
 
     this._devices = await getDevices();
-    print(_devices);
     if (_devices.isEmpty) {
       printError('No device found.');
       return 1;
