@@ -60,7 +60,7 @@ class MDTestRunner {
     await for (var line in lineStream) {
       Match portMatch = portPattern.firstMatch(line.toString());
       if (portMatch != null) {
-        printInfo(line.toString().trim());
+        printInfo('${line.toString().trim()} (${deviceSpec.nickName}: ${device.id})');
         deviceSpec.observatoryUrl = portMatch.group(1);
         break;
       }
