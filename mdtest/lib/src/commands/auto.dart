@@ -111,9 +111,12 @@ class AutoCommand extends MDTestCommand {
       await uninstallTestedApps(deviceMapping);
     }
 
-    print('App-device coverage hit matrix:');
-    CoverageMatrix.printMatrix(appDeviceCoverageMatrix);
+    CoverageMatrix.printMatrix(
+      appDeviceCoverageMatrix,
+      'App-device coverage hit matrix:'
+    );
     CoverageMatrix.printLegend();
+    CoverageMatrix.computeAndReportCoverage(appDeviceCoverageMatrix);
 
     if (errRounds.isNotEmpty) {
       printError('Error in Round #${errRounds.join(', #')}');
@@ -141,7 +144,13 @@ class AutoCommand extends MDTestCommand {
     usesTAPReportOption();
     argParser.addOption('groupby',
       defaultsTo: 'device-id',
-      allowed: ['device-id', 'model-name', 'os-version', 'api-level', 'screen-size'],
+      allowed: [
+        'device-id',
+        'model-name',
+        'os-version',
+        'api-level',
+        'screen-size'
+      ],
       help: 'Device property used to group devices to'
             'adjust app-device coverage criterion.'
     );
