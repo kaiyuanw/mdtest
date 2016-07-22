@@ -142,25 +142,51 @@ class CoverageMatrix {
     print(legendInfo.toString());
   }
 
-  static void printMatrix(CoverageMatrix coverageMatrix, String title) {
-    if (coverageMatrix == null) {
-      return;
-    }
-    GroupInfo groupInfo = coverageMatrix.groupInfo;
-    List<List<int>> matrix = coverageMatrix.matrix;
-    Table prettyMatrix = new Table(1);
-    prettyMatrix.columns.add('app key \\ device key');
-    prettyMatrix.columns.addAll(groupInfo.deviceClustersOrder);
-    int startIndx = beginOfDiff(groupInfo.deviceSpecClustersOrder);
-    for (int i = 0; i < matrix.length; i++) {
-      prettyMatrix.data.add(
-        groupInfo.deviceSpecClustersOrder[i].substring(startIndx)
-      );
-      prettyMatrix.data.addAll(matrix[i]);
-    }
-    print(title);
-    print(prettyMatrix);
+  static void printCoverageMatrix(String title, CoverageMatrix coverageMatrix) {
+    printMatrix(
+      title,
+      coverageMatrix,
+      (int e) {
+        if (e == -1) {
+          return 'unreachable';
+        } else {
+          return 'reachable';
+        }
+      }
+    );
   }
+
+  static void printHitmap(String title, CoverageMatrix coverageMatrix) {
+    printMatrix(
+      title,
+      coverageMatrix,
+      (int e) {
+        return '$e';
+      }
+    );
+    printLegend();
+    computeAndReportCoverage(coverageMatrix);
+  }
+}
+
+void printMatrix(String title, CoverageMatrix coverageMatrix, f(int e)) {
+  if (coverageMatrix == null) {
+    return;
+  }
+  GroupInfo groupInfo = coverageMatrix.groupInfo;
+  List<List<int>> matrix = coverageMatrix.matrix;
+  Table prettyMatrix = new Table(1);
+  prettyMatrix.columns.add('app key \\ device key');
+  prettyMatrix.columns.addAll(groupInfo.deviceClustersOrder);
+  int startIndx = beginOfDiff(groupInfo.deviceSpecClustersOrder);
+  for (int i = 0; i < matrix.length; i++) {
+    prettyMatrix.data.add(
+      groupInfo.deviceSpecClustersOrder[i].substring(startIndx)
+    );
+    prettyMatrix.data.addAll(matrix[i].map(f));
+  }
+  print(title);
+  print(prettyMatrix);
 }
 
 Map<CoverageMatrix, Map<DeviceSpec, Device>> buildCoverage2MatchMapping(
@@ -202,8 +228,10 @@ Set<Map<DeviceSpec, Device>> findMinimumMappings(
     minSet.add(currentBestCoverage);
     base.union(currentBestCoverage);
   }
-  CoverageMatrix.printMatrix(base, 'Best app-device coverage matrix:');
-  CoverageMatrix.printLegend();
+  CoverageMatrix.printCoverageMatrix(
+    'Best app-device coverage matrix:',
+    base
+  );
   Set<Map<DeviceSpec, Device>> bestMatches = new Set<Map<DeviceSpec, Device>>();
   for (CoverageMatrix coverage in minSet) {
     bestMatches.add(cov2match[coverage]);

@@ -74,6 +74,7 @@ class AutoCommand extends MDTestCommand {
     List<int> failRounds = [];
     int roundNum = 1;
     for (Map<DeviceSpec, Device> deviceMapping in chosenMappings) {
+      printInfo('Begining of Round #$roundNum');
       MDTestRunner runner = new MDTestRunner();
 
       if (await runner.runAllApps(deviceMapping) != 0) {
@@ -109,14 +110,13 @@ class AutoCommand extends MDTestCommand {
       }
 
       await uninstallTestedApps(deviceMapping);
+      printInfo('End of Round #$roundNum\n');
     }
 
-    CoverageMatrix.printMatrix(
-      appDeviceCoverageMatrix,
-      'App-device coverage hit matrix:'
+    CoverageMatrix.printHitmap(
+      'App-device coverage hit matrix:',
+      appDeviceCoverageMatrix
     );
-    CoverageMatrix.printLegend();
-    CoverageMatrix.computeAndReportCoverage(appDeviceCoverageMatrix);
 
     if (errRounds.isNotEmpty) {
       printError('Error in Round #${errRounds.join(', #')}');
