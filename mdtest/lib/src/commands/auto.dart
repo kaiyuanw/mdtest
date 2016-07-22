@@ -62,9 +62,9 @@ class AutoCommand extends MDTestCommand {
     GroupInfo groupInfo = new GroupInfo(deviceGroups, deviceSpecGroups);
     Map<CoverageMatrix, Map<DeviceSpec, Device>> cov2match
       = buildCoverage2MatchMapping(allDeviceMappings, groupInfo);
-    CoverageMatrix coverage = new CoverageMatrix(groupInfo);
+    CoverageMatrix appDeviceCoverageMatrix = new CoverageMatrix(groupInfo);
     Set<Map<DeviceSpec, Device>> chosenMappings
-      = findMinimumMappings(cov2match, coverage);
+      = findMinimumMappings(cov2match, appDeviceCoverageMatrix);
     printMatches(chosenMappings);
 
     Map<String, CoverageCollector> collectorPool
@@ -77,7 +77,7 @@ class AutoCommand extends MDTestCommand {
       MDTestRunner runner = new MDTestRunner();
 
       if (await runner.runAllApps(deviceMapping) != 0) {
-        printError('Error when running applications');
+        printError('Error when running applications on #Round $roundNum');
         await uninstallTestedApps(deviceMapping);
         errRounds.add(roundNum++);
         continue;
@@ -100,6 +100,8 @@ class AutoCommand extends MDTestCommand {
         printInfo('All tests in Round #${roundNum++} passed');
       }
 
+      appDeviceCoverageMatrix.hit(deviceMapping);
+
       if (argResults['coverage']) {
         printTrace('Collecting code coverage hitmap (this may take some time)');
         buildCoverageCollectionTasks(deviceMapping, collectorPool);
@@ -108,6 +110,10 @@ class AutoCommand extends MDTestCommand {
 
       await uninstallTestedApps(deviceMapping);
     }
+
+    print('App-device coverage hit matrix:');
+    CoverageMatrix.printMatrix(appDeviceCoverageMatrix);
+    CoverageMatrix.printLegend();
 
     if (errRounds.isNotEmpty) {
       printError('Error in Round #${errRounds.join(', #')}');

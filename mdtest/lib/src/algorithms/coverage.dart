@@ -31,28 +31,20 @@ class GroupInfo {
   List<String> get deviceSpecClustersOrder => _deviceSpecClustersOrder;
 }
 
-// indicate that an app-device path can never be covered given the available
-// devices
+// -1 indicates that an app-device path can never be covered given the available
+// devices.  0 indicates that an app-device path can be covered, but not covered
+// yet. (No test script is run under this setting) A positive number indicates
+// the number of times an app-device path is hit by some test runs.
 const int cannotBeCovered = -1;
-
-// indicate that an app-device path can be covered, but not covered yet.  No
-// test script is run under this setting
 const int isNotCovered = 0;
-
-// indicate that an app-device path is covered, but some test script fails under
-// this setting
-const int isCoveredFailed = 1;
-
-// indicate that an app-device path is covered, and all test scripts pass under
-// this setting
-const int isCoveredPassed = 2;
+const int oneHit = 1;
 
 class CoverageMatrix {
 
   CoverageMatrix(this.groupInfo) {
     this.matrix = new List<List<int>>(groupInfo.deviceSpecClusters.length);
     for (int i = 0; i < matrix.length; i++) {
-      matrix[i] = new List<int>.filled(groupInfo.deviceClusters.length, -1);
+      matrix[i] = new List<int>.filled(groupInfo.deviceClusters.length, cannotBeCovered);
     }
   }
 
@@ -71,11 +63,25 @@ class CoverageMatrix {
     });
   }
 
+  void hit(Map<DeviceSpec, Device> match) {
+    match.forEach((DeviceSpec spec, Device device) {
+      int rowNum = groupInfo.deviceSpecClustersOrder
+                              .indexOf(spec.groupKey());
+      int colNum = groupInfo.deviceClustersOrder
+                              .indexOf(device.groupKey());
+      matrix[rowNum][colNum] += oneHit;
+    });
+  }
+
   void union(CoverageMatrix newCoverage) {
     for (int i = 0; i < matrix.length; i++) {
       List<int> row = matrix[i];
       for (int j = 0; j < row.length; j++) {
-        matrix[i][j] |= newCoverage.matrix[i][j];
+        if (matrix[i][j] == cannotBeCovered
+            &&
+            newCoverage.matrix[i][j] == isNotCovered) {
+          matrix[i][j] = isNotCovered;
+        }
       }
     }
   }
@@ -98,12 +104,8 @@ class CoverageMatrix {
     int totalPathNum = rowNum * colNum;
     int reachableCombinationNum
       = countNumberInCoverageMatrix(matrix, (int e) => e != cannotBeCovered);
-    int coveredFailedCombinationNum
-      = countNumberInCoverageMatrix(matrix, (int e) => e == isCoveredFailed);
-    int coveredPassedCombinationNum
-      = countNumberInCoverageMatrix(matrix, (int e) => e == isCoveredPassed);
     int coveredCombinationNum
-      = coveredFailedCombinationNum + coveredPassedCombinationNum;
+      = countNumberInCoverageMatrix(matrix, (int e) => e > isNotCovered);
     NumberFormat percentFormat = new NumberFormat('%##.0#', 'en_US');
     print('App-Device Path Coverage = ADPC');
     double reachableCoverageScore = reachableCombinationNum / totalPathNum;
@@ -111,18 +113,14 @@ class CoverageMatrix {
     double coveredCoverageScore
       = coveredCombinationNum / reachableCombinationNum;
     print('Covered ADPC score: ${percentFormat.format(coveredCoverageScore)}');
-    double coveredSuccessCovergeScore
-      = coveredPassedCombinationNum / coveredCombinationNum;
-    print('Passed ADPC score: ${percentFormat.format(coveredSuccessCovergeScore)}');
   }
 
   static void printLegend() {
     StringBuffer sb = new StringBuffer();
     sb.writeln('Meaning of the number in the coverage matrix:');
-    sb.writeln('$cannotBeCovered: an app-device path is not reachable');
-    sb.writeln('$isNotCovered: an app-device path is reachable but not covered');
-    sb.writeln('$isCoveredFailed: an app-device path is covered, but some test fails');
-    sb.writeln('$isCoveredPassed: an app-device path is covered, and all tests pass');
+    sb.writeln('$cannotBeCovered: an app-device path is not reachable given the connected devices.');
+    sb.writeln(' $isNotCovered: an app-device path is reachable but not covered by any test run.');
+    sb.writeln('>$isNotCovered: the number of times an app-device path is covered by some test runs.');
     print(sb.toString());
   }
 
@@ -183,8 +181,9 @@ Set<Map<DeviceSpec, Device>> findMinimumMappings(
     minSet.add(currentBestCoverage);
     base.union(currentBestCoverage);
   }
-  print('Best coverage matrix:');
+  print('Best app-device coverage matrix:');
   CoverageMatrix.printMatrix(base);
+  CoverageMatrix.printLegend();
   Set<Map<DeviceSpec, Device>> bestMatches = new Set<Map<DeviceSpec, Device>>();
   for (CoverageMatrix coverage in minSet) {
     bestMatches.add(cov2match[coverage]);
