@@ -41,12 +41,10 @@ class Meta {
   Meta._internal(this._config);
 }
 
-class DriverMap extends IterableBase<FlutterDriver> {
+class DriverMap extends UnmodifiableMapBase<String, Future<FlutterDriver>> {
 
   Meta _meta;
   Map<String, FlutterDriver> _map;
-
-  Iterator get iterator => _map.values.iterator;
 
   DriverMap() {
     _meta = new Meta();
@@ -57,6 +55,7 @@ class DriverMap extends IterableBase<FlutterDriver> {
   /// does not exist in the test spec, report error and return null.  Otherwise,
   /// if the flutter driver associated with the nickname is not initialized,
   /// initialize the driver.  If the flutter driver is initialized, return it.
+  @override
   Future<FlutterDriver> operator [](String nickname) async {
     dynamic config = _meta.config;
     if (config.containsKey(nickname)) {
@@ -74,9 +73,17 @@ class DriverMap extends IterableBase<FlutterDriver> {
     return null;
   }
 
+  @override
+  Iterable<String> get keys {
+    return _map.keys..forEach(
+      (String nickname) => _map[nickname]
+    );
+  }
+
   /// Close all connected drivers.
   void closeAll() {
-    this.forEach((FlutterDriver driver) async {
+    keys.forEach((String nickname) async {
+      FlutterDriver driver = await this[nickname];
       if (driver != null) {
         await driver.close();
       }
