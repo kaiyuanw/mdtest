@@ -119,7 +119,7 @@ class AutoCommand extends MDTestCommand {
     );
 
     if (errRounds.isNotEmpty) {
-      printError('Error in Round #${errRounds.join(', #')}');
+      printInfo('Error in Round #${errRounds.join(', #')}');
       return 1;
     }
 

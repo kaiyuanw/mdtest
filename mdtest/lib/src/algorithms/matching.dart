@@ -10,6 +10,7 @@ import '../base/common.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
 import '../util.dart';
+import '../globals.dart';
 
 /// Find all matched devices for each device spec
 Map<DeviceSpec, Set<Device>> findIndividualMatches(
@@ -137,6 +138,9 @@ bool _findAllMatchingDeviceMappings(
 
 /// Print a collection of matches which is iterable.
 void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
+  if (briefMode) {
+    return;
+  }
   StringBuffer sb = new StringBuffer();
   int roundNum = 1;
   sb.writeln('=' * 10);

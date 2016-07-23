@@ -8,6 +8,7 @@ import 'package:dlog/dlog.dart' show Table;
 import '../mobile/device.dart' show Device;
 import '../mobile/device_spec.dart' show DeviceSpec;
 import '../util.dart';
+import '../globals.dart';
 
 class GroupInfo {
   Map<String, List<Device>> _deviceClusters;
@@ -89,7 +90,11 @@ class CoverageMatrix {
 
   /// Compute and print the app-device coverage.
   static void computeAndReportCoverage(CoverageMatrix coverageMatrix) {
+    if (briefMode) {
+      return;
+    }
     if (coverageMatrix == null) {
+      printError('Coverage matrix is null');
       return;
     }
     int countNumberInCoverageMatrix(List<List<int>> matrix, bool test(int e)) {
@@ -125,6 +130,9 @@ class CoverageMatrix {
   }
 
   static void printLegend() {
+    if (briefMode) {
+      return;
+    }
     StringBuffer legendInfo = new StringBuffer();
     legendInfo.writeln('Meaning of the number in the coverage matrix:');
     legendInfo.writeln(
@@ -143,6 +151,9 @@ class CoverageMatrix {
   }
 
   static void printCoverageMatrix(String title, CoverageMatrix coverageMatrix) {
+    if (briefMode) {
+      return;
+    }
     printMatrix(
       title,
       coverageMatrix,
@@ -157,6 +168,9 @@ class CoverageMatrix {
   }
 
   static void printHitmap(String title, CoverageMatrix coverageMatrix) {
+    if (briefMode) {
+      return;
+    }
     printMatrix(
       title,
       coverageMatrix,
