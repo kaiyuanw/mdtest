@@ -74,11 +74,7 @@ class DriverMap extends UnmodifiableMapBase<String, Future<FlutterDriver>> {
   }
 
   @override
-  Iterable<String> get keys {
-    return _map.keys..forEach(
-      (String nickname) => _map[nickname]
-    );
-  }
+  Iterable<String> get keys => _meta.config.keys;
 
   /// Close all connected drivers.
   void closeAll() {
