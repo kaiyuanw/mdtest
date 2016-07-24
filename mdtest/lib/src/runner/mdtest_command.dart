@@ -22,6 +22,7 @@ abstract class MDTestCommand extends Command {
   MDTestCommandRunner get runner => super.runner;
 
   bool _usesSpecsOption = false;
+  bool _usesTargetOption = false;
 
   void usesSpecsOption() {
     argParser.addOption(
@@ -50,6 +51,17 @@ abstract class MDTestCommand extends Command {
       allowed: ['none', 'tap'],
       help: 'Format to be used to display test output result.'
     );
+  }
+
+  void usesTargetOption() {
+    argParser.addOption(
+      'target',
+      abbr: 't',
+      defaultsTo: null,
+      help:
+        'Path to create the test spec template.'
+    );
+    _usesTargetOption = true;
   }
 
   @override
@@ -84,6 +96,19 @@ abstract class MDTestCommand extends Command {
         return false;
       }
     }
+    if (_usesTargetOption) {
+      String targetPath = argResults['target'];
+      if (targetPath == null) {
+        printError('Target path is not set.');
+        return false;
+      }
+      if (FileSystemEntity.isDirectorySync(targetPath)) {
+        printError('Target file "$targetPath" is a directory.');
+        return false;
+      }
+    }
     return true;
   }
+
+
 }

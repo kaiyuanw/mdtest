@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -72,7 +71,7 @@ bool _findMatchingDeviceMapping(
 /// Store the specs to device mapping as a system temporary file.  The file
 /// stores device nickname as well as device id and observatory url for
 /// each device
-Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
+void storeMatches(Map<DeviceSpec, Device> deviceMapping) {
   Map<String, dynamic> matchesData = new Map<String, dynamic>();
   deviceMapping.forEach((DeviceSpec specs, Device device) {
     matchesData[specs.nickName] =
@@ -82,11 +81,12 @@ Future<Null> storeMatches(Map<DeviceSpec, Device> deviceMapping) async {
     };
   });
   Directory systemTempDir = Directory.systemTemp;
-  File tempFile = new File('${systemTempDir.path}/$defaultTempSpecsName');
-  if(await tempFile.exists())
-    await tempFile.delete();
-  File file = await tempFile.create();
-  await file.writeAsString(JSON.encode(matchesData));
+  // File tempFile = new File('${systemTempDir.path}/$defaultTempSpecsName');
+  // if(await tempFile.exists())
+  //   await tempFile.delete();
+  // File file = await tempFile.create();
+  File file = createNewFile('${systemTempDir.path}/$defaultTempSpecsName');
+  file.writeAsStringSync(JSON.encode(matchesData));
 }
 
 /// Return all spec to device mappings, return empty list if no such mapping
