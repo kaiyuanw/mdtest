@@ -143,7 +143,8 @@ void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
   }
   StringBuffer sb = new StringBuffer();
   int roundNum = 1;
-  sb.writeln('=' * 10);
+  sb.writeln(doubleLineSeparator());
+  String intermediateSeparator = '';
   for (Map<DeviceSpec, Device> match in matches) {
     int startIndx = beginOfDiff(
       new List.from(
@@ -154,14 +155,16 @@ void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
         )
       )
     );
+    sb.write(intermediateSeparator);
     sb.writeln('Round $roundNum:');
     match.forEach((DeviceSpec spec, Device device) {
       sb.writeln('<Spec Group Key: ${spec.groupKey().substring(startIndx)}>'
                  ' -> '
                  '<Device Group Key: ${device.groupKey()}>');
     });
+    intermediateSeparator = '${singleLineSeparator()}\n';
     roundNum++;
   }
-  sb.write('=' * 10);
+  sb.write(doubleLineSeparator());
   print(sb.toString());
 }
