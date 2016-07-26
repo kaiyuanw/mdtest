@@ -143,7 +143,7 @@ void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
   }
   StringBuffer sb = new StringBuffer();
   int roundNum = 1;
-  sb.writeln(doubleLineSeparator());
+  sb.writeln(doubleLineSeparator);
   String intermediateSeparator = '';
   for (Map<DeviceSpec, Device> match in matches) {
     int startIndx = beginOfDiff(
@@ -162,9 +162,9 @@ void printMatches(Iterable<Map<DeviceSpec, Device>> matches) {
                  ' -> '
                  '<Device Group Key: ${device.groupKey()}>');
     });
-    intermediateSeparator = '${singleLineSeparator()}\n';
+    intermediateSeparator = '$singleLineSeparator\n';
     roundNum++;
   }
-  sb.write(doubleLineSeparator());
+  sb.write(doubleLineSeparator);
   print(sb.toString());
 }
