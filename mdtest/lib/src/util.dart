@@ -10,13 +10,10 @@ import 'package:glob/glob.dart';
 
 import 'globals.dart';
 
-String doubleLineSeparator() {
-  return '=' * 20;
-}
-
-String singleLineSeparator() {
-  return '-' * 20;
-}
+// '=' * 20
+const String doubleLineSeparator = '====================';
+// '-' * 20
+const String singleLineSeparator = '--------------------';
 
 int minLength(List<String> elements) {
   if (elements == null || elements.isEmpty) return -1;
