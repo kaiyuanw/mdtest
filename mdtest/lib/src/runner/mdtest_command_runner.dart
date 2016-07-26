@@ -26,7 +26,7 @@ class MDTestCommandRunner extends CommandRunner {
       'brief',
       abbr: 'b',
       negatable: false,
-      help: 'Diable logging, only report test execution output.'
+      help: 'Disable logging, only report test execution output.'
     );
   }
 

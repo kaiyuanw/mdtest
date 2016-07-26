@@ -113,10 +113,12 @@ class AutoCommand extends MDTestCommand {
       printInfo('End of Round #$roundNum\n');
     }
 
-    CoverageMatrix.printHitmap(
-      'App-device coverage hit matrix:',
-      appDeviceCoverageMatrix
-    );
+    if (!briefMode) {
+      printHitmap(
+        'App-device coverage hit matrix:',
+        appDeviceCoverageMatrix
+      );
+    }
 
     if (errRounds.isNotEmpty) {
       printInfo('Error in Round #${errRounds.join(', #')}');
