@@ -12,6 +12,23 @@ import '../mobile/device_spec.dart';
 import '../globals.dart';
 import '../util.dart';
 
+Future<List<String>> getAndroidDeviceIDs() async {
+  List<String> androidIDs = <String>[];
+  Process process = await Process.start('adb', ['devices']);
+  RegExp androidIDPattern = new RegExp(r'^\S+\s+device$');
+  Stream lineStream = process.stdout
+                             .transform(new Utf8Decoder())
+                             .transform(new LineSplitter());
+  await for (var line in lineStream) {
+    Match androidIDMatcher = androidIDPattern.firstMatch(line.toString());
+    if (androidIDMatcher != null) {
+      String androidID = androidIDMatcher.group(1);
+      androidIDs.add(androidID);
+    }
+  }
+  return androidIDs;
+}
+
 const String lockProp = 'mHoldingWakeLockSuspendBlocker';
 
 /// Check if the device is locked
@@ -23,8 +40,8 @@ Future<bool> _deviceIsLocked(Device device) async {
   bool isLocked;
   RegExp lockStatusPattern = new RegExp(lockProp + r'=(.*)');
   Stream lineStream = process.stdout
-                        .transform(new Utf8Decoder())
-                        .transform(new LineSplitter());
+                             .transform(new Utf8Decoder())
+                             .transform(new LineSplitter());
   await for (var line in lineStream) {
     Match lockMatcher = lockStatusPattern.firstMatch(line.toString());
     if (lockMatcher != null) {
@@ -169,7 +186,7 @@ Future<String> getScreenSize(String deviceID) async {
   double yInch = ySize / density;
   double diagonalSize = sqrt(xInch * xInch + yInch * yInch);
 
-  if (diagonalSize < 3.5) return 'small';
+  if (diagonalSize < 3.6) return 'small';
   if (diagonalSize < 5) return 'normal';
   if (diagonalSize < 8) return 'large';
   return 'xlarge';

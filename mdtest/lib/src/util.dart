@@ -10,6 +10,24 @@ import 'package:glob/glob.dart';
 
 import 'globals.dart';
 
+class OperatingSystemUtil {
+  String _os;
+  static OperatingSystemUtil instance;
+
+  factory OperatingSystemUtil() {
+    if (instance == null) {
+      instance = new OperatingSystemUtil._internal(Platform.operatingSystem);
+    }
+    return instance;
+  }
+
+  bool get isMacOS => _os == 'macos';
+  bool get isWindows => _os == 'windows';
+  bool get isLinux => _os == 'linux';
+
+  OperatingSystemUtil._internal(this._os);
+}
+
 // '=' * 20
 const String doubleLineSeparator = '====================';
 // '-' * 20
