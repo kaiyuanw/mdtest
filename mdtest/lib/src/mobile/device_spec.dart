@@ -21,11 +21,11 @@ class DeviceSpec implements GroupKeyProvider {
 
   Map<String, String> specProperties;
 
+  String get platform => specProperties['platform'];
   String get nickName => specProperties['nickname'];
   String get deviceID => specProperties['device-id'];
   String get deviceModelName => specProperties['model-name'];
   String get deviceOSVersion => specProperties['os-version'];
-  String get deviceAPILevel => specProperties['api-level'];
   String get deviceScreenSize => specProperties['screen-size'];
   String get appRootPath => specProperties['app-root'];
   String get appPath => specProperties['app-path'];
@@ -38,21 +38,31 @@ class DeviceSpec implements GroupKeyProvider {
   /// Checked property names includes: device-id, model-name, screen-size
   bool matches(Device device) {
     List<String> checkedProperties = [
+      'platform',
       'device-id',
       'model-name',
-      'os-version',
-      'api-level',
       'screen-size'
     ];
     return checkedProperties.every(
       (String propertyName) => isNullOrEqual(propertyName, device)
-    );
+    )
+    &&
+    osVersionMatches(device);
   }
 
   bool isNullOrEqual(String propertyName, Device device) {
     return specProperties[propertyName] == null
            ||
            specProperties[propertyName] == device.properties[propertyName];
+  }
+
+  bool osVersionMatches(Device device) {
+    String osVersion = specProperties['os-version'];
+    VersionConstraint versionConstraint
+      = new VersionConstraint.parse(osVersion);
+    return versionConstraint.allows(
+      new Version.parse(device.properties['os-version'])
+    );
   }
 
   @override
@@ -62,10 +72,10 @@ class DeviceSpec implements GroupKeyProvider {
 
   @override
   String toString() => '<nickname: $nickName, '
+                       'platform: $platform, '
                        'id: $deviceID, '
                        'model name: $deviceModelName, '
                        'os version: $deviceOSVersion, '
-                       'api level: $deviceAPILevel, '
                        'screen size: $deviceScreenSize, '
                        'port: $observatoryUrl, '
                        'app path: $appPath>';

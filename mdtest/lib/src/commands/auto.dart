@@ -8,7 +8,6 @@ import 'helper.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
 import '../mobile/key_provider.dart';
-import '../mobile/android.dart';
 import '../algorithms/coverage.dart';
 import '../algorithms/matching.dart';
 import '../globals.dart';
@@ -79,7 +78,7 @@ class AutoCommand extends MDTestCommand {
 
       if (await runner.runAllApps(deviceMapping) != 0) {
         printError('Error when running applications on #Round $roundNum');
-        await uninstallTestedApps(deviceMapping);
+        await uninstallTestingApps(deviceMapping);
         errRounds.add(roundNum++);
         continue;
       }
@@ -109,7 +108,7 @@ class AutoCommand extends MDTestCommand {
         await runCoverageCollectionTasks(collectorPool);
       }
 
-      await uninstallTestedApps(deviceMapping);
+      await uninstallTestingApps(deviceMapping);
       printInfo('End of Round #$roundNum\n');
     }
 
@@ -150,7 +149,6 @@ class AutoCommand extends MDTestCommand {
         'device-id',
         'model-name',
         'os-version',
-        'api-level',
         'screen-size'
       ],
       help: 'Device property used to group devices to'
