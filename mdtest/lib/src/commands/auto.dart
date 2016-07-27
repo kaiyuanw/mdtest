@@ -137,7 +137,7 @@ class AutoCommand extends MDTestCommand {
         return 1;
     }
 
-    return 0;
+    return failRounds.isNotEmpty ? 1 : 0;
   }
 
   AutoCommand() {

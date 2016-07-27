@@ -92,7 +92,7 @@ class RunCommand extends MDTestCommand {
 
     await uninstallTestedApps(deviceMapping);
 
-    return 0;
+    return testsFailed ? 1 : 0;
   }
 
   RunCommand() {
