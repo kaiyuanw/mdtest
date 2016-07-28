@@ -41,7 +41,6 @@ class CoverageCollector {
     if (_globalHitmap == null) {
       print('XXXX: No hitmap before, assign it to global hitmap');
       _globalHitmap = hitmap;
-      print(_globalHitmap);
     } else {
       print('XXXX: Merge hitmap to global hitmap');
       mergeHitmaps(hitmap, _globalHitmap);
@@ -49,9 +48,14 @@ class CoverageCollector {
   }
 
   Future<Null> finishPendingJobs() async {
-    await Future.wait(_jobs.toList(), eagerError: true).catchError((e) {
-      print('Error: ${e.error}');
-    });
+    // await Future.wait(_jobs.toList(), eagerError: true).catchError((e) {
+    //   print('Error: ${e.error}');
+    // });
+    for (Future<Null> job in _jobs.toList()) {
+      print('XXXX: start job');
+      await job;
+      print('XXXX: end job');
+    }
   }
 
   Future<String> finalizeCoverage(String appRootPath) async {
