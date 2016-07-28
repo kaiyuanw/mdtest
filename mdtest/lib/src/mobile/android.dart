@@ -15,7 +15,7 @@ import '../util.dart';
 Future<List<String>> getAndroidDeviceIDs() async {
   List<String> androidIDs = <String>[];
   Process process = await Process.start('adb', ['devices']);
-  RegExp androidIDPattern = new RegExp(r'^\S+\s+device$');
+  RegExp androidIDPattern = new RegExp(r'^(\S+)\s+device$');
   Stream lineStream = process.stdout
                              .transform(new Utf8Decoder())
                              .transform(new LineSplitter());

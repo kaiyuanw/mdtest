@@ -47,7 +47,7 @@ class DeviceSpec implements GroupKeyProvider {
       (String propertyName) => isNullOrEqual(propertyName, device)
     )
     &&
-    osVersionMatches(device);
+    osVersionIsNullOrMatches(device);
   }
 
   bool isNullOrEqual(String propertyName, Device device) {
@@ -56,8 +56,11 @@ class DeviceSpec implements GroupKeyProvider {
            specProperties[propertyName] == device.properties[propertyName];
   }
 
-  bool osVersionMatches(Device device) {
+  bool osVersionIsNullOrMatches(Device device) {
     String osVersion = specProperties['os-version'];
+    if (osVersion == null) {
+      return true;
+    }
     VersionConstraint versionConstraint
       = new VersionConstraint.parse(osVersion);
     return versionConstraint.allows(

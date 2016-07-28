@@ -17,7 +17,7 @@ Future<List<String>> getIOSDeviceIDs() async {
     return iosIDs;
   }
   Process process = await Process.start('mobiledevice', ['list_devices']);
-  RegExp iosIDPattern = new RegExp(r'.*');
+  RegExp iosIDPattern = new RegExp(r'^(.*)$');
   Stream lineStream = process.stdout
                              .transform(new Utf8Decoder())
                              .transform(new LineSplitter());
