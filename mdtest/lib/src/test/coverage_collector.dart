@@ -23,6 +23,7 @@ class CoverageCollector {
     }
     String host = urlMatcher.group(1);
     int port = int.parse(urlMatcher.group(2));
+    print('XXXX: Host $host, port $port');
     _jobs.add(_startJob(
       host: host,
       port: port
@@ -33,16 +34,23 @@ class CoverageCollector {
     String host,
     int port
   }) async {
+    print('XXXX: Collect data from dart vm');
     Map<String, dynamic> data = await collect(host, port, false, false);
+    print('XXXX: Create hitmap');
     Map<String, dynamic> hitmap = createHitmap(data['coverage']);
-    if (_globalHitmap == null)
+    if (_globalHitmap == null) {
+      print('XXXX: No hitmap before, assign it to global hitmap');
       _globalHitmap = hitmap;
-    else
+    } else {
+      print('XXXX: Merge hitmap to global hitmap');
       mergeHitmaps(hitmap, _globalHitmap);
+    }
   }
 
   Future<Null> finishPendingJobs() async {
-    await Future.wait(_jobs.toList(), eagerError: true);
+    await Future.wait(_jobs.toList(), eagerError: true).catchError((e) {
+      print('Error: ${e.error}');
+    });
   }
 
   Future<String> finalizeCoverage(String appRootPath) async {
