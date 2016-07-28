@@ -41,6 +41,7 @@ class CoverageCollector {
     if (_globalHitmap == null) {
       print('XXXX: No hitmap before, assign it to global hitmap');
       _globalHitmap = hitmap;
+      print(_globalHitmap);
     } else {
       print('XXXX: Merge hitmap to global hitmap');
       mergeHitmaps(hitmap, _globalHitmap);
