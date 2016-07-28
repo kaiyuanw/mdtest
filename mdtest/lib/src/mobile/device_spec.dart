@@ -155,8 +155,9 @@ int sanityCheckSpecs(dynamic spec, String specsPath) {
       return 1;
     }
     String osVersion = individualDeviceSpec['os-version'];
+    print('XXXX: OS version: $osVersion');
     if (osVersion != null) {
-      if (individualDeviceSpec['platform'] == null) {
+      if (platform == null) {
         printError(
           'You must also specify platform type if you specify os-version.'
         );
