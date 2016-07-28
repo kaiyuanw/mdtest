@@ -79,7 +79,9 @@ class AutoCommand extends MDTestCommand {
       if (await runner.runAllApps(deviceMapping) != 0) {
         printError('Error when running applications on #Round $roundNum');
         await uninstallTestingApps(deviceMapping);
-        errRounds.add(roundNum++);
+        errRounds.add(roundNum);
+        printInfo('End of Round #$roundNum\n');
+        roundNum++;
         continue;
       }
 
@@ -95,7 +97,7 @@ class AutoCommand extends MDTestCommand {
       assert(testsFailed != null);
       if (testsFailed) {
         printInfo('Some tests in Round #$roundNum failed');
-        failRounds.add(roundNum++);
+        failRounds.add(roundNum);
       } else {
         printInfo('All tests in Round #${roundNum++} passed');
       }
@@ -110,6 +112,7 @@ class AutoCommand extends MDTestCommand {
 
       await uninstallTestingApps(deviceMapping);
       printInfo('End of Round #$roundNum\n');
+      roundNum++;
     }
 
     if (!briefMode) {
