@@ -179,13 +179,9 @@ Future<Null> runCoverageCollectionTasks(
 ) async {
   assert(collectorPool.isNotEmpty);
   // Collect coverage for every application
-  print('XXXX: Start runCoverageCollectionTasks');
   for (CoverageCollector collector in collectorPool.values) {
-    print('XXXX: Start collector.finishPendingJobs');
     await collector.finishPendingJobs();
-    print('XXXX: End collector.finishPendingJobs');
   }
-  print('XXXX: End runCoverageCollectionTasks');
 }
 
 /// Compute application code coverage and write coverage info in lcov format
