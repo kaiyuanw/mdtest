@@ -147,6 +147,7 @@ class AutoCommand extends MDTestCommand {
       defaultsTo: 'device-id',
       allowed: [
         'device-id',
+        'platform',
         'model-name',
         'os-version',
         'screen-size'
