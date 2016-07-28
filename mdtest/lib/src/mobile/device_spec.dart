@@ -80,7 +80,7 @@ class DeviceSpec implements GroupKeyProvider {
                        'model name: $deviceModelName, '
                        'os version: $deviceOSVersion, '
                        'screen size: $deviceScreenSize, '
-                       'port: $observatoryUrl, '
+                       'observatory url: $observatoryUrl, '
                        'app path: $appPath>';
 }
 

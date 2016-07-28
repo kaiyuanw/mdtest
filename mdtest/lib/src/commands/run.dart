@@ -35,7 +35,6 @@ class RunCommand extends MDTestCommand {
     }
 
     this._devices = await getDevices();
-    print(_devices);
     if (_devices.isEmpty) {
       printError('No device found.');
       return 1;
@@ -47,7 +46,6 @@ class RunCommand extends MDTestCommand {
       = findIndividualMatches(allDeviceSpecs, _devices);
     Map<DeviceSpec, Device> deviceMapping
       = findMatchingDeviceMapping(allDeviceSpecs, individualMatches);
-    print(deviceMapping);
     if(deviceMapping == null) {
       printError('No device specs to devices mapping is found.');
       return 1;
