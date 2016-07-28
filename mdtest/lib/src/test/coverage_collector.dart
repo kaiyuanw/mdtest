@@ -36,6 +36,7 @@ class CoverageCollector {
   }) async {
     print('XXXX: Collect data from dart vm');
     Map<String, dynamic> data = await collect(host, port, false, false);
+    print('YYYY: $data');
     print('XXXX: Create hitmap');
     Map<String, dynamic> hitmap = createHitmap(data['coverage']);
     if (_globalHitmap == null) {
