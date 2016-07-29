@@ -71,7 +71,7 @@ class DeviceSpec implements GroupKeyProvider {
 }
 
 Future<dynamic> loadSpecs(ArgResults argResults) async {
-  String specsPath = argResults['specs'];
+  String specsPath = argResults['spec'];
   try {
     // Read specs file into json format
     dynamic newSpecs = JSON.decode(await new File(specsPath).readAsString());

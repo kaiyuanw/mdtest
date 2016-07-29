@@ -81,10 +81,6 @@ void storeMatches(Map<DeviceSpec, Device> deviceMapping) {
     };
   });
   Directory systemTempDir = Directory.systemTemp;
-  // File tempFile = new File('${systemTempDir.path}/$defaultTempSpecsName');
-  // if(await tempFile.exists())
-  //   await tempFile.delete();
-  // File file = await tempFile.create();
   File file = createNewFile('${systemTempDir.path}/$defaultTempSpecsName');
   file.writeAsStringSync(JSON.encode(matchesData));
 }
