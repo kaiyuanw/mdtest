@@ -31,7 +31,7 @@ class RunCommand extends MDTestCommand {
 
     this._specs = await loadSpecs(argResults);
     printTrace(_specs.toString());
-    if (sanityCheckSpecs(_specs, argResults['specs']) != 0) {
+    if (sanityCheckSpecs(_specs, argResults['spec']) != 0) {
       printError('Test spec does not meet requirements.');
       return 1;
     }

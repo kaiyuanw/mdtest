@@ -112,29 +112,33 @@ abstract class MDTestCommand extends Command {
 
     if (_usesSpecTemplateOption) {
       String specTemplatePath = argResults['spec-template'];
-      if (specTemplatePath != null && !specTemplatePath.endsWith('.spec')) {
-        printError(
-          'Spec template path $specTemplatePath must have .spec suffix.'
-        );
-        return false;
-      }
-      if (FileSystemEntity.isDirectorySync(specTemplatePath)) {
-        printError('Spec template file "$specTemplatePath" is a directory.');
-        return false;
+      if (specTemplatePath != null) {
+        if (!specTemplatePath.endsWith('.spec')) {
+          printError(
+            'Spec template path must have .spec suffix (found "$specTemplatePath").'
+          );
+          return false;
+        }
+        if (FileSystemEntity.isDirectorySync(specTemplatePath)) {
+          printError('Spec template file "$specTemplatePath" is a directory.');
+          return false;
+        }
       }
     }
 
     if (_usesTestTemplateOption) {
       String testTemplatePath = argResults['test-template'];
-      if (testTemplatePath != null && !testTemplatePath.endsWith('.dart')) {
-        printError(
-          'Test template path $testTemplatePath must have .dart suffix.'
-        );
-        return false;
-      }
-      if (FileSystemEntity.isDirectorySync(testTemplatePath)) {
-        printError('Test template file "$testTemplatePath" is a directory.');
-        return false;
+      if (testTemplatePath != null) {
+        if (!testTemplatePath.endsWith('.dart')) {
+          printError(
+            'Test template path must have .dart suffix (found "$testTemplatePath").'
+          );
+          return false;
+        }
+        if (FileSystemEntity.isDirectorySync(testTemplatePath)) {
+          printError('Test template file "$testTemplatePath" is a directory.');
+          return false;
+        }
       }
     }
     return true;
