@@ -11,11 +11,14 @@ class TAPReporter {
   int currentTestNum;
   int passingTestsNum;
   Map<int, TestEvent> testEventMapping;
+  String currentTestPath;
+  List<TestSuite> suites;
 
   TAPReporter() {
     this.currentTestNum = 0;
     this.passingTestsNum = 0;
     this.testEventMapping = <int, TestEvent>{};
+    this.suites = <TestSuite>[];
   }
 
   void printHeader() {
@@ -25,13 +28,19 @@ class TAPReporter {
     );
   }
 
-  Future<bool> report(Stream jsonOutput) async {
+  Future<bool> report(String testScriptPath, Stream jsonOutput) async {
+    currentTestPath = testScriptPath;
+    suites.add(new TestSuite(testScriptPath));
     bool hasTestOutput = false;
     await for (var line in jsonOutput) {
       convertToTAPFormat(line.toString().trim());
       hasTestOutput = true;
     }
-    testEventMapping.clear();
+    suites.last.events.where(
+      (Event e) => e is GroupEvent
+    ).forEach(
+      (GroupEvent e) => e.detectError()
+    );
     return hasTestOutput;
   }
 
@@ -55,14 +64,19 @@ class TAPReporter {
       return;
     }
 
+    TestSuite lastSuite = suites.last;
+
     if (_isGroupEvent(event) && !_isGroupRootEvent(event)) {
       dynamic groupInfo = event['group'];
+      String name = groupInfo['name'];
       bool skip = groupInfo['metadata']['skip'];
+      String skipReason = groupInfo['metadata']['skipReason'] ?? '';
       if (skip) {
-        String skipReason = groupInfo['metadata']['skipReason'] ?? '';
         print('# skip ${groupInfo['name']} $skipReason');
+      } else {
+        print('# ${groupInfo['name']}');
       }
-      print('# ${groupInfo['name']}');
+      lastSuite.addEvent(new GroupEvent(name, skip, skipReason));
     } else if (_isTestStartEvent(event)) {
       dynamic testInfo = event['test'];
       int testID = testInfo['id'];
@@ -81,6 +95,24 @@ class TAPReporter {
       testEvent.hidden = event['hidden'];
       testEvent.result = event['result'];
       printTestResult(testEvent);
+      if (testEvent.hidden) {
+        return;
+      }
+      if (lastSuite.events.isEmpty) {
+        lastSuite.addEvent(testEvent);
+      } else {
+        Event lastEvent = lastSuite.events.last;
+        if (lastEvent is TestEvent) {
+          lastSuite.addEvent(testEvent);
+        } else if (lastEvent is GroupEvent) {
+          GroupEvent lastGroupEvent = lastEvent;
+          lastGroupEvent.addTestEvent(testEvent);
+        } else {
+          printError(
+            'Unrecognized event type ${lastEvent.runtimeType} in ${lastSuite.events}'
+          );
+        }
+      }
     }
   }
 
@@ -131,29 +163,146 @@ class TAPReporter {
     print('ok ${++currentTestNum} - ${event.name}');
     passingTestsNum++;
   }
+
+  String dumpToJSONString() {
+    dynamic map = suites.map((TestSuite suite) => suite.toJson()).toList();
+    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+    return encoder.convert(map);
+  }
 }
 
-class TestEvent {
-  // Known at TestStartEvent
+abstract class Event {
   String name;
   bool skip;
   String skipReason;
-  // Known at ErrorEvent
   bool error;
+
+  Event(this.name, this.skip, this.skipReason);
+
+  Map toJson();
+
+  @override
+  String toString() {
+    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+    return encoder.convert(toJson());
+  }
+}
+
+class TestEvent extends Event {
+  // // Known at TestStartEvent
+  // String name;
+  // bool skip;
+  // String skipReason;
+  // // Known at ErrorEvent
+  // bool error;
   String errorReason;
   // Known at TestDoneEvents
   String result;
   bool hidden;
 
-  TestEvent(String name, bool skip, String skipReason) {
-    this.name = name;
-    this.skip = skip;
-    this.skipReason = skipReason;
+  TestEvent(String name, bool skip, String skipReason)
+    : super(name, skip, skipReason) {
     this.error = false;
   }
 
   void fillError(String errorReason) {
     this.error = true;
     this.errorReason = errorReason;
+  }
+
+  @override
+  Map<String, String> toJson() {
+    Map<String, String> map = <String, String>{};
+    map['name'] = name;
+    if (skip) {
+      map['status'] = 'skip';
+      map['reason'] = skipReason;
+    } else {
+      if (error) {
+        map['status'] = 'error';
+        map['reason'] = errorReason;
+      } else {
+        map['status'] = 'pass';
+      }
+    }
+    map['result'] = result;
+    return map;
+  }
+}
+
+
+class GroupEvent extends Event {
+  // // Known at GroupEvent
+  // String name;
+  // bool skip;
+  // String skipReason;
+  // // Known after all TestDoneEvents in this group are emitted
+  // bool error;
+
+  List<TestEvent> testsInGroup;
+
+  GroupEvent(String name, bool skip, String skipReason)
+    : super(name, skip, skipReason) {
+    this.testsInGroup = <TestEvent>[];
+  }
+
+  void addTestEvent(TestEvent testEvent) {
+    testsInGroup.add(testEvent);
+  }
+
+  void detectError() {
+    for (TestEvent testInGroup in testsInGroup) {
+      if (testInGroup.error) {
+        this.error = true;
+        return;
+      }
+    }
+    this.error = false;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> map = <String, dynamic>{};
+    map['name'] = name;
+    if (skip) {
+      map['status'] = 'skip';
+      map['reason'] = skipReason;
+    } else {
+      if (error) {
+        map['status'] = 'error';
+      } else {
+        map['status'] = 'pass';
+      }
+    }
+    map['tests'] = testsInGroup.map(
+      (TestEvent e) => e.toJson()
+    ).toList();
+    return map;
+  }
+}
+
+class TestSuite {
+  String name;
+  List<Event> events;
+
+  TestSuite(this.name) {
+    this.events = <Event>[];
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> map = <String, dynamic>{};
+    map['name'] = name;
+    map['details'] = events.map((Event e) => e.toJson()).toList();
+    return map;
+  }
+
+  void addEvent(Event event) {
+    events.add(event);
+  }
+
+  @override
+  String toString() {
+    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+    return encoder.convert(toJson());
   }
 }

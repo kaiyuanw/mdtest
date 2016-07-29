@@ -96,6 +96,7 @@ class MDTestRunner {
       result += await runTestToTAP(testPath, reporter);
     }
     reporter.printSummary();
+    print(reporter.dumpToJSONString());
     return result == 0 ? 0 : 1;
   }
 
@@ -131,6 +132,7 @@ class MDTestRunner {
       ['run', 'test', '--reporter', 'json', '$testPath']
     );
     bool hasTestOutput = await reporter.report(
+      testPath,
       process.stdout
              .transform(new Utf8Decoder())
              .transform(new LineSplitter())
