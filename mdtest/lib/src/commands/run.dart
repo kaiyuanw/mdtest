@@ -3,14 +3,17 @@
 // license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'helper.dart';
 import '../mobile/device.dart';
 import '../mobile/device_spec.dart';
 import '../algorithms/matching.dart';
 import '../globals.dart';
+import '../util.dart';
 import '../runner/mdtest_command.dart';
 import '../test/coverage_collector.dart';
+import '../test/reporter.dart';
 
 class RunCommand extends MDTestCommand {
 
@@ -61,9 +64,11 @@ class RunCommand extends MDTestCommand {
 
     await storeMatches(deviceMapping);
 
+    TAPReporter reporter = new TAPReporter();
     bool testsFailed;
     if (argResults['format'] == 'tap') {
-      testsFailed = await runner.runAllTestsToTAP(_specs['test-paths']) != 0;
+      testsFailed
+        = await runner.runAllTestsToTAP(_specs['test-paths'], reporter) != 0;
     } else {
       testsFailed = await runner.runAllTests(_specs['test-paths']) != 0;
     }
@@ -73,6 +78,19 @@ class RunCommand extends MDTestCommand {
       printInfo('Some tests failed');
     } else {
       printInfo('All tests passed');
+    }
+
+    String reportDataPath = argResults['save-report'];
+    if (reportDataPath != null) {
+      reportDataPath
+        = normalizePath(Directory.current.path, reportDataPath);
+      File file = createNewFile(reportDataPath);
+      printInfo('Writing report data to $reportDataPath');
+      file.writeAsStringSync(
+        dumpToJSONString(
+          {'test-report': [reporter.toJson()]}
+        )
+      );
     }
 
     if (argResults['coverage']) {
@@ -97,5 +115,6 @@ class RunCommand extends MDTestCommand {
     usesSpecsOption();
     usesCoverageFlag();
     usesTAPReportOption();
+    usesSaveTestReportOption();
   }
 }

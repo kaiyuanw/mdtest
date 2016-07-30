@@ -24,6 +24,7 @@ abstract class MDTestCommand extends Command {
   bool _usesSpecsOption = false;
   bool _usesSpecTemplateOption = false;
   bool _usesTestTemplateOption = false;
+  bool _usesSaveTestReportOption = false;
 
   void usesSpecsOption() {
     argParser.addOption(
@@ -52,6 +53,17 @@ abstract class MDTestCommand extends Command {
       allowed: ['none', 'tap'],
       help: 'Format to be used to display test output result.'
     );
+  }
+
+  void usesSaveTestReportOption() {
+    argParser.addOption(
+      'save-report',
+      defaultsTo: null,
+      help:
+        'Path to save the test output report.  '
+        'The report will be saved in JSON format.'
+    );
+    _usesSaveTestReportOption = true;
   }
 
   void usesSpecTemplateOption() {
@@ -98,7 +110,7 @@ abstract class MDTestCommand extends Command {
     if (_usesSpecsOption) {
       String specsPath = argResults['spec'];
       if (specsPath == null) {
-        printError('Spec file is not set.');
+        printError('Spec file path is not specified.');
         return false;
       }
       if (!specsPath.endsWith('.spec')) {
@@ -139,6 +151,31 @@ abstract class MDTestCommand extends Command {
           printError('Test template file "$testTemplatePath" is a directory.');
           return false;
         }
+      }
+    }
+
+    if (_usesSaveTestReportOption) {
+      if (argResults['format'] != 'tap') {
+        printError(
+          'The --save-report option must be used with TAP test output format.  '
+          'Please set --format to tap.'
+        );
+        return false;
+      }
+      String savedReportPath = argResults['save-report'];
+      if (savedReportPath == null) {
+        printError('Report data file path is not specified.');
+        return false;
+      }
+      if (!savedReportPath.endsWith('.json')) {
+        printError(
+          'Report data file must have .json suffix (found "$savedReportPath").'
+        );
+        return false;
+      }
+      if (FileSystemEntity.isDirectorySync(savedReportPath)) {
+        printError('Report data file "$savedReportPath" is a directory.');
+        return false;
       }
     }
     return true;

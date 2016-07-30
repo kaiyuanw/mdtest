@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'helper.dart';
 import '../mobile/device.dart';
@@ -11,8 +12,10 @@ import '../mobile/key_provider.dart';
 import '../algorithms/coverage.dart';
 import '../algorithms/matching.dart';
 import '../globals.dart';
+import '../util.dart';
 import '../runner/mdtest_command.dart';
 import '../test/coverage_collector.dart';
+import '../test/reporter.dart';
 
 class AutoCommand extends MDTestCommand {
   @override
@@ -69,6 +72,8 @@ class AutoCommand extends MDTestCommand {
     Map<String, CoverageCollector> collectorPool
       = <String, CoverageCollector>{};
 
+    List<TAPReporter> allTAPReporters = <dynamic>[];
+
     List<int> errRounds = [];
     List<int> failRounds = [];
     int roundNum = 1;
@@ -89,7 +94,10 @@ class AutoCommand extends MDTestCommand {
 
       bool testsFailed;
       if (argResults['format'] == 'tap') {
-        testsFailed = await runner.runAllTestsToTAP(_specs['test-paths']) != 0;
+        TAPReporter reporter = new TAPReporter();
+        testsFailed
+          = await runner.runAllTestsToTAP(_specs['test-paths'], reporter) != 0;
+        allTAPReporters.add(reporter);
       } else {
         testsFailed = await runner.runAllTests(_specs['test-paths']) != 0;
       }
@@ -133,6 +141,23 @@ class AutoCommand extends MDTestCommand {
       printInfo('All tests in all rounds passed');
     }
 
+    String reportDataPath = argResults['save-report'];
+    if (reportDataPath != null) {
+      reportDataPath
+        = normalizePath(Directory.current.path, reportDataPath);
+      File file = createNewFile(reportDataPath);
+      printInfo('Writing report data to $reportDataPath');
+      file.writeAsStringSync(
+        dumpToJSONString(
+          {
+            'test-report': allTAPReporters.map(
+              (TAPReporter reporter) => reporter.toJson()
+            ).toList()
+          }
+        )
+      );
+    }
+
     if (argResults['coverage']) {
       printInfo('Computing code coverage for each application ...');
       if (await computeAppsCoverage(collectorPool, name) != 0)
@@ -146,6 +171,7 @@ class AutoCommand extends MDTestCommand {
     usesSpecsOption();
     usesCoverageFlag();
     usesTAPReportOption();
+    usesSaveTestReportOption();
     argParser.addOption('groupby',
       defaultsTo: 'device-id',
       allowed: [

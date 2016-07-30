@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:path/path.dart' as path;
 import 'package:glob/glob.dart';
@@ -143,4 +144,9 @@ List<String> mergeWithoutDuplicate(
   List<String> result = new List.from(first);
   result.addAll(second.where((String e) => !first.contains(e)));
   return result;
+}
+
+String dumpToJSONString(dynamic jsonObject) {
+  JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+  return encoder.convert(jsonObject);
 }

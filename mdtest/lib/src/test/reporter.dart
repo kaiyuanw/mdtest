@@ -164,10 +164,8 @@ class TAPReporter {
     passingTestsNum++;
   }
 
-  String dumpToJSONString() {
-    dynamic map = suites.map((TestSuite suite) => suite.toJson()).toList();
-    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-    return encoder.convert(map);
+  dynamic toJson() {
+    return suites.map((TestSuite suite) => suite.toJson()).toList();
   }
 }
 

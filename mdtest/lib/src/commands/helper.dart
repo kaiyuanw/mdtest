@@ -88,15 +88,13 @@ class MDTestRunner {
   }
 
   /// Run all tests with test output in TAP format
-  Future<int> runAllTestsToTAP(Iterable<String> testPaths) async {
+  Future<int> runAllTestsToTAP(Iterable<String> testPaths, TAPReporter reporter) async {
     int result = 0;
-    TAPReporter reporter = new TAPReporter();
     reporter.printHeader();
     for (String testPath in testPaths) {
       result += await runTestToTAP(testPath, reporter);
     }
     reporter.printSummary();
-    print(reporter.dumpToJSONString());
     return result == 0 ? 0 : 1;
   }
 
