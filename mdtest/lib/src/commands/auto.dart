@@ -123,9 +123,10 @@ class AutoCommand extends MDTestCommand {
       roundNum++;
     }
 
+    String hitmapTitle = 'App-device coverage hit matrix:';
     if (!briefMode) {
       printHitmap(
-        'App-device coverage hit matrix:',
+        hitmapTitle,
         appDeviceCoverageMatrix
       );
     }
@@ -150,6 +151,10 @@ class AutoCommand extends MDTestCommand {
       file.writeAsStringSync(
         dumpToJSONString(
           {
+            'table': appDeviceCoverageMatrix.toJson(
+              hitmapTitle,
+              (int e) => '$e'
+            ),
             'test-report': allTAPReporters.map(
               (TAPReporter reporter) => reporter.toJson()
             ).toList()

@@ -93,6 +93,30 @@ class CoverageMatrix {
       }
     }
   }
+
+  /// Convert coverage matrix into JSON format.  Return a dictionary that
+  /// stores the title, data and legend of the table.
+  dynamic toJson(String title, f(int e)) {
+    List<List<String>> data = <List<String>>[];
+    List<String> firstRow = <String>[];
+    firstRow.add('app key \\ device key');
+    firstRow.addAll(groupInfo.deviceClustersOrder);
+    data.add(firstRow);
+    int startIndx = beginOfDiff(groupInfo.deviceSpecClustersOrder);
+    for (int i = 0; i < matrix.length; i++) {
+      List<String> row = <String>[];
+      row.add(
+        groupInfo.deviceSpecClustersOrder[i].substring(startIndx)
+      );
+      row.addAll(matrix[i].map(f));
+      data.add(row);
+    }
+    return {
+      'table-title': title,
+      'table-data': data,
+      'table-legend': legend
+    };
+  }
 }
 
 int _countNumberInCoverageMatrix(List<List<int>> matrix, bool test(int e)) {
@@ -135,22 +159,18 @@ void computeAndReportCoverage(CoverageMatrix coverageMatrix) {
   print(scoreReport.toString());
 }
 
+const String legend =
+'Meaning of the number in the coverage matrix:\n'
+'$cannotBeCovered: an app-device path is not reachable '
+'given the connected devices.\n'
+' $isNotCovered: an app-device path is reachable but '
+'not covered by any test run.\n'
+'>$isNotCovered: the number of times an app-device path '
+'is covered by some test runs.\n'
+;
+
 void printLegend() {
-  StringBuffer legendInfo = new StringBuffer();
-  legendInfo.writeln('Meaning of the number in the coverage matrix:');
-  legendInfo.writeln(
-    '$cannotBeCovered: an app-device path is not reachable '
-    'given the connected devices.'
-  );
-  legendInfo.writeln(
-    ' $isNotCovered: an app-device path is reachable but '
-    'not covered by any test run.'
-  );
-  legendInfo.writeln(
-    '>$isNotCovered: the number of times an app-device path '
-    'is covered by some test runs.'
-  );
-  print(legendInfo.toString());
+  print(legend);
 }
 
 void printCoverageMatrix(String title, CoverageMatrix coverageMatrix) {
