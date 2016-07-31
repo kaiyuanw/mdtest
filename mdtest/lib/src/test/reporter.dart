@@ -5,12 +5,15 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'event.dart';
 import '../globals.dart';
+import '../util.dart';
 
 class TAPReporter {
   int currentTestNum;
   int passingTestsNum;
   Map<int, TestEvent> testEventMapping;
+  Map<int, GroupEvent> groupEventMapping;
   String currentTestPath;
   List<TestSuite> suites;
 
@@ -18,6 +21,7 @@ class TAPReporter {
     this.currentTestNum = 0;
     this.passingTestsNum = 0;
     this.testEventMapping = <int, TestEvent>{};
+    this.groupEventMapping = <int, GroupEvent>{};
     this.suites = <TestSuite>[];
   }
 
@@ -29,6 +33,8 @@ class TAPReporter {
   }
 
   Future<bool> report(String testScriptPath, Stream jsonOutput) async {
+    testEventMapping.clear();
+    groupEventMapping.clear();
     currentTestPath = testScriptPath;
     suites.add(new TestSuite(testScriptPath));
     bool hasTestOutput = false;
@@ -36,11 +42,6 @@ class TAPReporter {
       convertToTAPFormat(line.toString().trim());
       hasTestOutput = true;
     }
-    suites.last.events.where(
-      (Event e) => e is GroupEvent
-    ).forEach(
-      (GroupEvent e) => e.detectError()
-    );
     return hasTestOutput;
   }
 
@@ -76,14 +77,23 @@ class TAPReporter {
       } else {
         print('# ${groupInfo['name']}');
       }
-      lastSuite.addEvent(new GroupEvent(name, skip, skipReason));
+      int groupID = groupInfo['id'];
+      GroupEvent groupEvent = new GroupEvent(name, skip, skipReason);
+      groupEventMapping[groupID] = groupEvent;
+      lastSuite.addEvent(groupEvent);
     } else if (_isTestStartEvent(event)) {
       dynamic testInfo = event['test'];
       int testID = testInfo['id'];
       String name = testInfo['name'];
+      List<int> groupIDs = testInfo['groupIDs'];
+      int directParentGroupID;
+      if (groupIDs.isNotEmpty) {
+        directParentGroupID = groupIDs.last;
+      }
       bool skip = testInfo['metadata']['skip'];
       String skipReason = testInfo['metadata']['skipReason'] ?? '';
-      testEventMapping[testID] = new TestEvent(name, skip, skipReason);
+      testEventMapping[testID]
+        = new TestEvent(name, directParentGroupID, skip, skipReason);
     } else if (_isErrorEvent(event)) {
       int testID = event['testID'];
       TestEvent testEvent = testEventMapping[testID];
@@ -98,20 +108,12 @@ class TAPReporter {
       if (testEvent.hidden) {
         return;
       }
-      if (lastSuite.events.isEmpty) {
+      int directParentGroupID = testEvent.directParentGroupID;
+      if (!groupEventMapping.containsKey(directParentGroupID)) {
         lastSuite.addEvent(testEvent);
       } else {
-        Event lastEvent = lastSuite.events.last;
-        if (lastEvent is TestEvent) {
-          lastSuite.addEvent(testEvent);
-        } else if (lastEvent is GroupEvent) {
-          GroupEvent lastGroupEvent = lastEvent;
-          lastGroupEvent.addTestEvent(testEvent);
-        } else {
-          printError(
-            'Unrecognized event type ${lastEvent.runtimeType} in ${lastSuite.events}'
-          );
-        }
+        GroupEvent groupEvent = groupEventMapping[directParentGroupID];
+        groupEvent.addTestEvent(testEvent);
       }
     }
   }
@@ -164,143 +166,26 @@ class TAPReporter {
     passingTestsNum++;
   }
 
+  int skipNum() {
+    return sum(suites.map((TestSuite e) => e.skipNum()));
+  }
+
+  int failNum() {
+    return sum(suites.map((TestSuite e) => e.failNum()));
+  }
+
+  int passNum() {
+    return sum(suites.map((TestSuite e) => e.passNum()));
+  }
+
   dynamic toJson() {
-    return suites.map((TestSuite suite) => suite.toJson()).toList();
-  }
-}
-
-abstract class Event {
-  String name;
-  bool skip;
-  String skipReason;
-  bool error;
-
-  Event(this.name, this.skip, this.skipReason);
-
-  Map toJson();
-
-  @override
-  String toString() {
-    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-    return encoder.convert(toJson());
-  }
-}
-
-class TestEvent extends Event {
-  // // Known at TestStartEvent
-  // String name;
-  // bool skip;
-  // String skipReason;
-  // // Known at ErrorEvent
-  // bool error;
-  String errorReason;
-  // Known at TestDoneEvents
-  String result;
-  bool hidden;
-
-  TestEvent(String name, bool skip, String skipReason)
-    : super(name, skip, skipReason) {
-    this.error = false;
-  }
-
-  void fillError(String errorReason) {
-    this.error = true;
-    this.errorReason = errorReason;
-  }
-
-  @override
-  Map<String, String> toJson() {
-    Map<String, String> map = <String, String>{};
-    map['name'] = name;
-    if (skip) {
-      map['status'] = 'skip';
-      map['reason'] = skipReason;
-    } else {
-      if (error) {
-        map['status'] = 'error';
-        map['reason'] = errorReason;
-      } else {
-        map['status'] = 'pass';
-      }
-    }
-    map['result'] = result;
-    return map;
-  }
-}
-
-
-class GroupEvent extends Event {
-  // // Known at GroupEvent
-  // String name;
-  // bool skip;
-  // String skipReason;
-  // // Known after all TestDoneEvents in this group are emitted
-  // bool error;
-
-  List<TestEvent> testsInGroup;
-
-  GroupEvent(String name, bool skip, String skipReason)
-    : super(name, skip, skipReason) {
-    this.testsInGroup = <TestEvent>[];
-  }
-
-  void addTestEvent(TestEvent testEvent) {
-    testsInGroup.add(testEvent);
-  }
-
-  void detectError() {
-    for (TestEvent testInGroup in testsInGroup) {
-      if (testInGroup.error) {
-        this.error = true;
-        return;
-      }
-    }
-    this.error = false;
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> map = <String, dynamic>{};
-    map['name'] = name;
-    if (skip) {
-      map['status'] = 'skip';
-      map['reason'] = skipReason;
-    } else {
-      if (error) {
-        map['status'] = 'error';
-      } else {
-        map['status'] = 'pass';
-      }
-    }
-    map['tests'] = testsInGroup.map(
-      (TestEvent e) => e.toJson()
-    ).toList();
-    return map;
-  }
-}
-
-class TestSuite {
-  String name;
-  List<Event> events;
-
-  TestSuite(this.name) {
-    this.events = <Event>[];
-  }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> map = <String, dynamic>{};
-    map['name'] = name;
-    map['details'] = events.map((Event e) => e.toJson()).toList();
-    return map;
-  }
-
-  void addEvent(Event event) {
-    events.add(event);
-  }
-
-  @override
-  String toString() {
-    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-    return encoder.convert(toJson());
+    int failures = failNum();
+    return {
+      'skip-num': skipNum(),
+      'fail-num': failures,
+      'pass-num': passNum(),
+      'status': failures > 0 ? 'fail' : 'pass',
+      'suites-info': suites.map((TestSuite suite) => suite.toJson()).toList()
+    };
   }
 }

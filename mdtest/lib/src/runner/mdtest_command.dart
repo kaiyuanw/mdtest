@@ -25,6 +25,7 @@ abstract class MDTestCommand extends Command {
   bool _usesSpecTemplateOption = false;
   bool _usesTestTemplateOption = false;
   bool _usesSaveTestReportOption = false;
+  bool _usesReportTypeOption = false;
 
   void usesSpecsOption() {
     argParser.addOption(
@@ -86,6 +87,18 @@ abstract class MDTestCommand extends Command {
     _usesTestTemplateOption = true;
   }
 
+  void usesReportTypeOption() {
+    argParser.addOption('report-type',
+      defaultsTo: null,
+      allowed: [
+        'test',
+        'coverage'
+      ],
+      help: 'Whether to generate a test report or a code coverage report.'
+    );
+    _usesReportTypeOption = true;
+  }
+
   @override
   Future<int> run() {
     Stopwatch stopwatch = new Stopwatch()..start();
@@ -132,7 +145,10 @@ abstract class MDTestCommand extends Command {
           return false;
         }
         if (FileSystemEntity.isDirectorySync(specTemplatePath)) {
-          printError('Spec template file "$specTemplatePath" is a directory.');
+          printError(
+            'Spec template file "$specTemplatePath" is a directory.  '
+            'A file path is expected.'
+          );
           return false;
         }
       }
@@ -148,7 +164,10 @@ abstract class MDTestCommand extends Command {
           return false;
         }
         if (FileSystemEntity.isDirectorySync(testTemplatePath)) {
-          printError('Test template file "$testTemplatePath" is a directory.');
+          printError(
+            'Test template file "$testTemplatePath" is a directory.  '
+            'A file path is expected.'
+          );
           return false;
         }
       }
@@ -175,6 +194,56 @@ abstract class MDTestCommand extends Command {
       }
       if (FileSystemEntity.isDirectorySync(savedReportPath)) {
         printError('Report data file "$savedReportPath" is a directory.');
+        return false;
+      }
+    }
+
+    if (_usesReportTypeOption) {
+      String reportType = argResults['report-type'];
+      if (reportType == null) {
+        printError(
+          'You must specify a report-type.  '
+          'Only "test" and "coverage" is allowed.'
+        );
+        return false;
+      }
+      // Report data path cannot be null and must be an existing file
+      String loadReportPath = argResults['load-report'];
+      if (loadReportPath == null) {
+        printError('You must specify a path to load the report data.');
+        return false;
+      }
+      if (!FileSystemEntity.isFileSync(loadReportPath)) {
+        printError(
+          'Report data path $loadReportPath is not a file.  '
+          'An existing file path is expected.'
+        );
+        return false;
+      }
+      // Output path cannot be null and must either point to an empty directory,
+      // or not exist
+      String outputPath = argResults['output'];
+      if (outputPath == null) {
+        printError('You must specify a path to generate the web report.');
+        return false;
+      }
+      if (FileSystemEntity.isFileSync(outputPath)) {
+        printError(
+          'Output path $outputPath is a file.  '
+          'An empty directory path or non-existing path is expected.'
+        );
+        return false;
+      }
+      if (reportType == 'coverage' && !loadReportPath.endsWith('.lcov')) {
+        printError(
+          'Coverage report data path $loadReportPath must have .lov suffix'
+        );
+        return false;
+      }
+      if (reportType == 'test' && !loadReportPath.endsWith('.json')) {
+        printError(
+          'Test report data path $loadReportPath must have .json suffix'
+        );
         return false;
       }
     }

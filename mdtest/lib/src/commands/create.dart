@@ -156,7 +156,7 @@ class CreateCommand extends MDTestCommand {
   final String name = 'create';
 
   @override
-  final String description = 'create a test spec/script template for the user to fill in';
+  final String description = 'Create a test spec/script template for the user to fill in';
 
   @override
   Future<int> runCore() async {

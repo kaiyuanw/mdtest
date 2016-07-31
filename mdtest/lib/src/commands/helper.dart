@@ -206,7 +206,7 @@ Future<int> computeAppsCoverage(
     File codeCoverageReport = getUniqueFile(
       new Directory(codeCoverageDirPath),
       'cov_$commandName',
-      'info'
+      'lcov'
     );
     try {
       // Write coverage info to code_coverage folder
