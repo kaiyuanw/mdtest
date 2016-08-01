@@ -135,7 +135,10 @@ class TestReport extends Report {
           </div>
           <script>
             \$(document).ready(function(){
-              \$('[data-toggle="tooltip"]').tooltip({html: true});
+              \$('[data-toggle="tooltip"]').tooltip({
+                  html: true,
+                  container: 'body'
+                });
             });
           </script>
         </body>
@@ -319,6 +322,7 @@ class TestGroupInfo extends Info {
   int skipNum;
   int passNum;
   int failNum;
+  String reason;
   List<TestMethodInfo> testMethodsInfo;
 
   TestGroupInfo(String id, dynamic groupInfo) {
@@ -328,6 +332,10 @@ class TestGroupInfo extends Info {
     this.passNum = groupInfo['pass-num'];
     this.failNum = groupInfo['fail-num'];
     this.status = groupInfo['status'];
+    this.reason = groupInfo['reason'];
+    if (reason != null) {
+      reason = reason.replaceAll(new RegExp(r'\n'), '<br>');
+    }
     this.testMethodsInfo = <TestMethodInfo>[];
     int methodNum = 1;
     for (dynamic testMethodInfo in groupInfo['methods-info']) {
@@ -346,9 +354,12 @@ class TestGroupInfo extends Info {
   @override
   String toHTML() {
     StringBuffer html = new StringBuffer();
+    html.writeln('<a href="#$id" class="list-group-item" data-toggle="collapse">');
+    if (reason != null) {
+      html.writeln('<span data-toggle="tooltip" data-placement="right" title="$reason"/>');
+    }
     html.writeln(
       '''
-      <a href="#$id" class="list-group-item" data-toggle="collapse">
         <div class="row">
           <div class="col-sm-3">
             <i class="glyphicon glyphicon-chevron-right"></i>$name
