@@ -34,7 +34,7 @@ class AutoCommand extends MDTestCommand {
   Future<int> runCore() async {
     printInfo('Running "mdtest auto command" ...');
 
-    this._specs = await loadSpecs(argResults);
+    this._specs = loadSpecs(argResults);
     if (sanityCheckSpecs(_specs, argResults['spec']) != 0) {
       printError('Test spec does not meet requirements.');
       return 1;
@@ -151,11 +151,11 @@ class AutoCommand extends MDTestCommand {
       file.writeAsStringSync(
         dumpToJSONString(
           {
-            'table': appDeviceCoverageMatrix.toJson(
+            'hitmap': appDeviceCoverageMatrix.toJson(
               hitmapTitle,
               (int e) => '$e'
             ),
-            'test-report': allTAPReporters.map(
+            'rounds-info': allTAPReporters.map(
               (TAPReporter reporter) => reporter.toJson()
             ).toList()
           }

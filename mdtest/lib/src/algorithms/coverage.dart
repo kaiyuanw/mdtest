@@ -112,9 +112,9 @@ class CoverageMatrix {
       data.add(row);
     }
     return {
-      'table-title': title,
-      'table-data': data,
-      'table-legend': legend
+      'title': title,
+      'data': data,
+      'legend': legend
     };
   }
 }

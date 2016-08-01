@@ -7,9 +7,11 @@ import 'dart:io';
 import '../util.dart';
 
 abstract class Report {
+  File reportDataFile;
   Directory outputDirectory;
 
-  Report(String outputPath) {
+  Report(String reportDataPath, String outputPath) {
+    reportDataFile = new File(reportDataPath);
     outputDirectory = createNewDirectory(outputPath);
   }
 }

@@ -41,6 +41,14 @@ int sum(Iterable<num> nums) {
   return nums.reduce((num x, num y) => x + y);
 }
 
+String directoryName(String filePath) {
+  return path.dirname(filePath);
+}
+
+String fileBaseName(String filePath) {
+  return path.basename(filePath);
+}
+
 int minLength(List<String> elements) {
   if (elements == null || elements.isEmpty) return -1;
   return elements.map((String e) => e.length).reduce(min);

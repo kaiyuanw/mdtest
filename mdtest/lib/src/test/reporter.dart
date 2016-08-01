@@ -14,7 +14,6 @@ class TAPReporter {
   int passingTestsNum;
   Map<int, TestEvent> testEventMapping;
   Map<int, GroupEvent> groupEventMapping;
-  String currentTestPath;
   List<TestSuite> suites;
 
   TAPReporter() {
@@ -35,7 +34,6 @@ class TAPReporter {
   Future<bool> report(String testScriptPath, Stream jsonOutput) async {
     testEventMapping.clear();
     groupEventMapping.clear();
-    currentTestPath = testScriptPath;
     suites.add(new TestSuite(testScriptPath));
     bool hasTestOutput = false;
     await for (var line in jsonOutput) {
@@ -87,8 +85,15 @@ class TAPReporter {
       String name = testInfo['name'];
       List<int> groupIDs = testInfo['groupIDs'];
       int directParentGroupID;
+      // Associate the test event to its parent group event if any
       if (groupIDs.isNotEmpty) {
         directParentGroupID = groupIDs.last;
+        // Remove group name prefix if any
+        GroupEvent directParentGroup = groupEventMapping[directParentGroupID];
+        String groupName = directParentGroup.name;
+        if (name.startsWith(groupName)) {
+          name = name.substring(groupName.length).trim();
+        }
       }
       bool skip = testInfo['metadata']['skip'];
       String skipReason = testInfo['metadata']['skipReason'] ?? '';
@@ -181,6 +186,7 @@ class TAPReporter {
   dynamic toJson() {
     int failures = failNum();
     return {
+      'type': 'test-round',
       'skip-num': skipNum(),
       'fail-num': failures,
       'pass-num': passNum(),

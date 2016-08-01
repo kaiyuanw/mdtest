@@ -72,12 +72,13 @@ class TestEvent extends Event {
   Map<String, String> toJson() {
     Map<String, String> map = <String, String>{};
     map['name'] = name;
+    map['type'] = 'test-method';
     if (skip) {
       map['status'] = 'skip';
       map['reason'] = skipReason;
     } else {
       if (error) {
-        map['status'] = 'error';
+        map['status'] = 'fail';
         map['reason'] = errorReason;
       } else {
         map['status'] = 'pass';
@@ -120,6 +121,7 @@ class GroupEvent extends Event {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = <String, dynamic>{};
     map['name'] = name;
+    map['type'] = 'test-group';
     if (skip) {
       map['status'] = 'skip';
       map['reason'] = skipReason;
@@ -134,7 +136,7 @@ class GroupEvent extends Event {
     map['skip-num'] = skipNum();
     map['fail-num'] = failures;
     map['pass-num'] = passNum();
-    map['tests'] = testsInGroup.map(
+    map['methods-info'] = testsInGroup.map(
       (TestEvent e) => e.toJson()
     ).toList();
     return map;
@@ -164,11 +166,12 @@ class TestSuite {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = <String, dynamic>{};
     map['name'] = name;
+    map['type'] = 'test-suite';
     map['skip-num'] = skipNum();
     map['fail-num'] = failNum();
     map['pass-num'] = passNum();
     map['status'] = map['fail-num'] > 0 ? 'fail' : 'pass';
-    map['details'] = events.map((Event e) => e.toJson()).toList();
+    map['children-info'] = events.map((Event e) => e.toJson()).toList();
     return map;
   }
 

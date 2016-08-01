@@ -7,6 +7,7 @@ import 'dart:io';
 
 import '../runner/mdtest_command.dart';
 import '../globals.dart';
+import '../report/test_report.dart';
 import '../util.dart';
 
 class GenerateCommand extends MDTestCommand {
@@ -22,10 +23,13 @@ class GenerateCommand extends MDTestCommand {
     printInfo('Running "mdtest generate command" ...');
     String reportDataPath = argResults['load-report'];
     String outputPath = argResults['output'];
-    Directory outputDirectory = createNewDirectory(outputPath);
     String reportType = argResults['report-type'];
     if (reportType == 'test') {
-
+      TestReport testReport = new TestReport(reportDataPath, outputPath);
+      testReport.writeReport();
+    }
+    if (reportType == 'coverage') {
+      printInfo('Not supported.');
     }
     return 0;
   }
@@ -34,7 +38,7 @@ class GenerateCommand extends MDTestCommand {
     guide.split('\n').forEach((String line) => printInfo(line));
   }
 
-  CreateCommand() {
+  GenerateCommand() {
     usesSpecTemplateOption();
     usesTestTemplateOption();
     usesReportTypeOption();

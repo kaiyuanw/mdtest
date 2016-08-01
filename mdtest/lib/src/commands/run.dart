@@ -31,7 +31,7 @@ class RunCommand extends MDTestCommand {
   Future<int> runCore() async {
     printInfo('Running "mdtest run command" ...');
 
-    this._specs = await loadSpecs(argResults);
+    this._specs = loadSpecs(argResults);
     if (sanityCheckSpecs(_specs, argResults['spec']) != 0) {
       printError('Test spec does not meet requirements.');
       return 1;
