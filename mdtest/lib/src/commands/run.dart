@@ -88,7 +88,7 @@ class RunCommand extends MDTestCommand {
       printInfo('Writing report data to $reportDataPath');
       file.writeAsStringSync(
         dumpToJSONString(
-          {'test-report': [reporter.toJson()]}
+          {'rounds-info': [reporter.toJson()]}
         )
       );
     }

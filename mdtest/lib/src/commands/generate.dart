@@ -3,13 +3,11 @@
 // license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import '../runner/mdtest_command.dart';
 import '../globals.dart';
 import '../report/test_report.dart';
 import '../report/coverage_report.dart';
-import '../util.dart';
 
 class GenerateCommand extends MDTestCommand {
 

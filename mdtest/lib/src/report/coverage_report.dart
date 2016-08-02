@@ -18,6 +18,7 @@ class CoverageReport extends Report {
 
   @override
   void writeReport() {
+    // Move the lib folder into the output directory
     Process.runSync('cp', ['-r', libDirectory.path, outputDirectory.path]);
     ProcessResult result = Process.runSync(
       'genhtml',
@@ -31,6 +32,7 @@ class CoverageReport extends Report {
         (String line) => printError(line)
       );
     }
+    // Delete the lib folder under the output directory
     Directory newLibDir = new Directory(
       normalizePath(outputDirectory.path, fileBaseName(libDirectory.path))
     );

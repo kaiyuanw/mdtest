@@ -36,8 +36,9 @@ class TestReport extends Report {
     } on FormatException {
       printError('File ${reportDataFile.absolute.path} is not in JSON format.');
       exit(1);
-    } catch (e) {
-      printError('Unknown Exception details:\n $e');
+    } catch (exception, stackTrace) {
+      print(exception);
+      print(stackTrace);
       exit(1);
     }
   }
@@ -54,76 +55,91 @@ class TestReport extends Report {
   }
 
   String toHTML() {
-    return
-    '''
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-    <html lang="en">
-      <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>MDTest - ${fileBaseName(reportDataFile.path)}</title>
-        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="report.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-        <script>
-          \$(function() {
-            \$(\'.list-group-item\').on(\'click\', function() {
-              \$(\'.glyphicon\', this)
-              .toggleClass(\'glyphicon-chevron-right\')
-              .toggleClass(\'glyphicon-chevron-down\');
+    StringBuffer html = new StringBuffer();
+    html.writeln(
+      '''
+      <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+      <html lang="en">
+        <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+          <title>MDTest - ${fileBaseName(reportDataFile.path)}</title>
+          <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+          <link rel="stylesheet" type="text/css" href="report.css">
+          <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+          <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+          <script>
+            \$(function() {
+              \$(\'.list-group-item\').on(\'click\', function() {
+                \$(\'.glyphicon\', this)
+                .toggleClass(\'glyphicon-chevron-right\')
+                .toggleClass(\'glyphicon-chevron-down\');
+              });
             });
-          });
-        </script>
-      </head>
-      <body>
+          </script>
+        </head>
+        <body>
         <table width="100%" border=0 cellspacing=0 cellpadding=0>
           <tr><td class="title">MDTest - test report</td></tr>
           <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
         </table>
+      '''
+    );
+    if (hitmapInfo != null) {
+      html.writeln(
+        '''
         <div class="container">
           <div class="just-padding">
             ${hitmapInfo.toHTML()}
           </div>
         </div>
-
         <table width="100%" border=0 cellspacing=0 cellpadding=0>
           <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
         </table>
+        '''
+      );
+    }
+    html.writeln(
+      '''
+      <div class="container">
+        <div class="just-padding">
+          ${roundsInfo.map((RoundInfo round) {
+            return
+            '''
+            <h3>${round.name}<h3>
+            <h4>${
+              round.highlight.trim().split('\n').map(
+                (String line) => escapeStringForHTML(line)
+              ).join('</h4>\n<h4>')
+            }</h4>
+            ''';
+          }).join('\n')}
+        </div>
+      </div>
 
-        <div class="container">
-          <div class="just-padding">
-            ${roundsInfo.map((RoundInfo round) {
-              return
-              '''
-              <h3>${round.name}<h3>
-              <h4>${round.highlight.trim().split('\n').map((String line) => escapeStringForHTML(line)).join('</h4>\n<h4>')}</h4>
-              ''';
-            }).join('\n')}
+      <table width="100%" border=0 cellspacing=0 cellpadding=0>
+        <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
+      </table>
+
+      <div class="container">
+        <div class="just-padding">
+          <div class="list-group list-group-root well">
+            ${roundsInfo.map((RoundInfo round) => round.toHTML()).join('\n')}
           </div>
         </div>
-
-        <table width="100%" border=0 cellspacing=0 cellpadding=0>
-          <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
-        </table>
-
-        <div class="container">
-          <div class="just-padding">
-            <div class="list-group list-group-root well">
-              ${roundsInfo.map((RoundInfo round) => round.toHTML()).join('\n')}
-            </div>
-          </div>
-        </div>
-        <script>
-          \$(document).ready(function(){
-            \$('[data-toggle="tooltip"]').tooltip({
-                html: true,
-                container: 'body'
-              });
-          });
-        </script>
-      </body>
-    </html>
-    ''';
+      </div>
+      <script>
+        \$(document).ready(function(){
+          \$('[data-toggle="tooltip"]').tooltip({
+              html: true,
+              container: 'body'
+            });
+        });
+      </script>
+    </body>
+  </html>
+      '''
+    );
+    return html.toString();
   }
 }
 
@@ -140,7 +156,7 @@ class HitmapInfo {
   }
 
   String toHTML() {
-    if (data.isEmpty || data.isNotEmpty && data[0].isEmpty) {
+    if (data == null || data.isEmpty || data.isNotEmpty && data[0].isEmpty) {
       printError('No hitmap data is found.');
       return '<h3>No hitmap data is found</h3>';
     }
@@ -236,7 +252,11 @@ class RoundInfo extends Info {
         </div>
       </a>
       <div class="list-group collapse" id="$id">
-        ${testSuitesInfo.map((TestSuiteInfo suite) => suite.toHTML()).join('\n')}
+        ${
+          testSuitesInfo.map(
+            (TestSuiteInfo suite) => suite.toHTML()
+          ).join('\n')
+        }
       </div>
       '''
     );
@@ -337,9 +357,13 @@ class TestGroupInfo extends Info {
   String toHTML() {
     StringBuffer html = new StringBuffer();
     String imgUrl = status == 'fail' ? 'ruby.png' : 'emerald.png';
-    html.writeln('<a href="#$id" class="list-group-item" data-toggle="collapse">');
+    html.writeln(
+      '<a href="#$id" class="list-group-item" data-toggle="collapse">'
+    );
     if (reason != null) {
-      html.writeln('<span data-toggle="tooltip" data-placement="right" title="$reason"/>');
+      html.writeln(
+        '<span data-toggle="tooltip" data-placement="right" title="$reason"/>'
+      );
     }
     html.writeln(
       '''
@@ -355,7 +379,11 @@ class TestGroupInfo extends Info {
         </div>
       </a>
       <div class="list-group collapse" id="$id">
-        ${testMethodsInfo.map((TestMethodInfo method) => method.toHTML()).join('\n')}
+        ${
+          testMethodsInfo.map(
+            (TestMethodInfo method) => method.toHTML()
+          ).join('\n')
+        }
       </div>
       '''
     );
@@ -382,7 +410,10 @@ class TestMethodInfo extends Info {
     if (reason == null) {
       html.writeln('<a class="list-group-item">');
     } else {
-      html.writeln('<a class="list-group-item" data-toggle="tooltip" data-placement="right" title="$reason">');
+      html.writeln(
+        '<a class="list-group-item" data-toggle="tooltip" '
+        'data-placement="right" title="$reason">'
+      );
     }
     html.writeln(
       '''
