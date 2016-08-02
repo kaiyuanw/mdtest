@@ -174,27 +174,25 @@ abstract class MDTestCommand extends Command {
     }
 
     if (_usesSaveTestReportOption) {
-      if (argResults['format'] != 'tap') {
-        printError(
-          'The --save-report option must be used with TAP test output format.  '
-          'Please set --format to tap.'
-        );
-        return false;
-      }
       String savedReportPath = argResults['save-report'];
-      if (savedReportPath == null) {
-        printError('Report data file path is not specified.');
-        return false;
-      }
-      if (!savedReportPath.endsWith('.json')) {
-        printError(
-          'Report data file must have .json suffix (found "$savedReportPath").'
-        );
-        return false;
-      }
-      if (FileSystemEntity.isDirectorySync(savedReportPath)) {
-        printError('Report data file "$savedReportPath" is a directory.');
-        return false;
+      if (savedReportPath != null) {
+        if (argResults['format'] != 'tap') {
+          printError(
+            'The --save-report option must be used with TAP test output format.  '
+            'Please set --format to tap.'
+          );
+          return false;
+        }
+        if (!savedReportPath.endsWith('.json')) {
+          printError(
+            'Report data file must have .json suffix (found "$savedReportPath").'
+          );
+          return false;
+        }
+        if (FileSystemEntity.isDirectorySync(savedReportPath)) {
+          printError('Report data file "$savedReportPath" is a directory.');
+          return false;
+        }
       }
     }
 
