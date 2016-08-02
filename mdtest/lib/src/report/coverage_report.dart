@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'report.dart';
 import '../globals.dart';
-import '../util.dart';
 
 class CoverageReport extends Report {
   Directory libDirectory;
@@ -27,15 +26,10 @@ class CoverageReport extends Report {
     result.stdout.toString().trim().split('\n').forEach(
       (String line) => printInfo(line)
     );
-    if (result.stderr.toString() != '') {
-      result.stderr.toString().trim().split('\n').forEach(
+    if (result.stderr.isNotEmpty) {
+      result.stderr.trim().split('\n').forEach(
         (String line) => printError(line)
       );
     }
-    // Delete the lib folder under the output directory
-    Directory newLibDir = new Directory(
-      normalizePath(outputDirectory.path, fileBaseName(libDirectory.path))
-    );
-    newLibDir.deleteSync(recursive: true);
   }
 }
