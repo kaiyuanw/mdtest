@@ -8,8 +8,7 @@ import '../src/util.dart';
 
 String mdtestScriptPath = Platform.script.toFilePath();
 int binStart = mdtestScriptPath.lastIndexOf('bin');
-String binPath = mdtestScriptPath.substring(0, binStart);
-String mdtestRootPath = directoryName(binPath);
+String mdtestRootPath = mdtestScriptPath.substring(0, binStart);
 String libPath = '$mdtestRootPath/lib';
 String assetsPath = '$libPath/assets';
 
