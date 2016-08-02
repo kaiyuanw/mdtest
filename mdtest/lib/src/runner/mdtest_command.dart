@@ -234,18 +234,48 @@ abstract class MDTestCommand extends Command {
         );
         return false;
       }
-      if (reportType == 'coverage' && !loadReportPath.endsWith('.lcov')) {
-        printError(
-          'Coverage report data path $loadReportPath must have .lov suffix'
-        );
-        return false;
+
+      // Lib path that points to the source code that code coverage report
+      // refers to
+      String libPath = argResults['lib'];
+
+      if (reportType == 'coverage') {
+        if (!loadReportPath.endsWith('.lcov')) {
+          printError(
+            'Coverage report data path $loadReportPath must have .lov suffix'
+          );
+          return false;
+        }
+        if (libPath == null) {
+          printError(
+            'A lib path is expected in code coverage report generating mode.'
+          );
+          return false;
+        }
+        if (!FileSystemEntity.isDirectorySync(libPath)) {
+          printError(
+            'Lib path $libPath is not a directory.  '
+            'A source code directory path is expected.'
+          );
+          return false;
+        }
       }
-      if (reportType == 'test' && !loadReportPath.endsWith('.json')) {
-        printError(
-          'Test report data path $loadReportPath must have .json suffix'
-        );
-        return false;
+
+      if (reportType == 'test') {
+        if (!loadReportPath.endsWith('.json')) {
+          printError(
+            'Test report data path $loadReportPath must have .json suffix'
+          );
+          return false;
+        }
+        if (libPath != null) {
+          printError(
+            'A lib path is not expected in test report generating mode.'
+          );
+          return false;
+        }
       }
+
     }
     return true;
   }

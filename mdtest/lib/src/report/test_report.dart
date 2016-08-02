@@ -42,13 +42,14 @@ class TestReport extends Report {
     }
   }
 
+  @override
   void writeReport() {
     File indexHTML = createNewFile(
       normalizePath(outputDirectory.path, 'index.html')
     );
     indexHTML.writeAsStringSync(toHTML());
     relatedPaths.forEach(
-      (String imagePath) => copyFileToDirectory(imagePath, outputDirectory.path)
+      (String imagePath) => copyPathToDirectory(imagePath, outputDirectory.path)
     );
   }
 

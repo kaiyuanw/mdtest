@@ -175,8 +175,8 @@ String dumpToJSONString(dynamic jsonObject) {
   return encoder.convert(jsonObject);
 }
 
-void copyFileToDirectory(String filePath, String dirPath) {
-  Process.runSync('cp', [filePath, dirPath]);
+void copyPathToDirectory(String fPath, String dirPath) {
+  Process.runSync('cp', ['-r', fPath, dirPath]);
 }
 
 String escapeStringForHTML(String content) {

@@ -8,6 +8,7 @@ import 'dart:io';
 import '../runner/mdtest_command.dart';
 import '../globals.dart';
 import '../report/test_report.dart';
+import '../report/coverage_report.dart';
 import '../util.dart';
 
 class GenerateCommand extends MDTestCommand {
@@ -29,7 +30,10 @@ class GenerateCommand extends MDTestCommand {
       testReport.writeReport();
     }
     if (reportType == 'coverage') {
-      printInfo('Not supported.');
+      String libPath = argResults['lib'];
+      CoverageReport coverageReport
+        = new CoverageReport(reportDataPath, libPath, outputPath);
+      coverageReport.writeReport();
     }
     return 0;
   }
@@ -49,6 +53,14 @@ class GenerateCommand extends MDTestCommand {
         'Path to load the report data.  '
         'The report data could be either lcov format for code coverage, '
         'or JSON format for test output.'
+    );
+    argParser.addOption(
+      'lib',
+      defaultsTo: null,
+      help:
+        'Path to the flutter lib folder that contains all source code of your '
+        'flutter application.  The source code should be what the code coverage '
+        'report data refers to.'
     );
     argParser.addOption(
       'output',

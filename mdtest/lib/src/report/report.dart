@@ -14,4 +14,6 @@ abstract class Report {
     reportDataFile = new File(reportDataPath);
     outputDirectory = createNewDirectory(outputPath);
   }
+
+  void writeReport();
 }
