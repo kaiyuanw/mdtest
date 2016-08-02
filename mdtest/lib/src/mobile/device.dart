@@ -65,7 +65,7 @@ Future<List<Device>> getDevices({String groupKey}) async {
         devices.add(await collectIOSDeviceProps(id, groupKey: groupKey));
       } else {
         // iOS simulator
-        printError('Device $id is not supported.');
+        printError('iOS simulator $id is not supported.');
       }
     }
   });

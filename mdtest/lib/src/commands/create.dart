@@ -14,6 +14,7 @@ const String specTemplate =
 {
   "devices": {
     "{nickname}": {
+      "platform": "{optional}",
       "device-id": "{optional}",
       "model-name": "{optional}",
       "os-version": "{optional}",
@@ -40,6 +41,7 @@ const String specGuide =
 {
   "devices": {
     "Alice": {
+      "platform": "android",
       "device-id": "HT4CWJT03204",
       "model-name": "Nexus 9",
       "os-version": "6.0",
@@ -59,10 +61,11 @@ const String specGuide =
 'the corresponding properties in the test spec.  You will use nicknames '
 'to establish connections between flutter drivers and devices in your '
 'test scripts.\n'
+'"platform" refers to whether it\'s an Android or iOS device.\n'
 '"device-id" is the unique id of your device.\n'
 '"model-name" is the device model name.\n'
-'"os-version" is the operating system version of your device.\n'
-'"api-level" is Android specific and refers to the API level of your device.\n'
+'"os-version" is the operating system version of your device.  '
+'This property depends on the platform.\n'
 '"screen-size" is the screen diagonal size measured in inches.  The candidate '
 'values are "small"(<3.5"), "normal"(>=3.5" && <5"), "large"(>=5" && <8") '
 'and "xlarge"(>=8").\n'
