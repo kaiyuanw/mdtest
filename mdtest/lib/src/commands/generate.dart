@@ -26,10 +26,12 @@ class GenerateCommand extends MDTestCommand {
     String outputPath = argResults['output'];
     String reportType = argResults['report-type'];
     if (reportType == 'test') {
+      printInfo('Generating test report to $outputPath.');
       TestReport testReport = new TestReport(reportDataPath, outputPath);
       testReport.writeReport();
     }
     if (reportType == 'coverage') {
+      printInfo('Generating code coverage report to $outputPath.');
       String libPath = argResults['lib'];
       CoverageReport coverageReport
         = new CoverageReport(reportDataPath, libPath, outputPath);

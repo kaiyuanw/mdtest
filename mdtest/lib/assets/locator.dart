@@ -6,7 +6,9 @@ import 'dart:io';
 
 import '../src/util.dart';
 
-String binPath = directoryName(Platform.script.toFilePath());
+String mdtestScriptPath = Platform.script.toFilePath();
+int binStart = mdtestScriptPath.lastIndexOf('bin');
+String binPath = mdtestScriptPath.substring(0, binStart);
 String mdtestRootPath = directoryName(binPath);
 String libPath = '$mdtestRootPath/lib';
 String assetsPath = '$libPath/assets';
