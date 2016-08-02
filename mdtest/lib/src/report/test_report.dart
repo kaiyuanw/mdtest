@@ -380,9 +380,9 @@ class TestMethodInfo extends Info {
     StringBuffer html = new StringBuffer();
     String imgUrl = status == 'fail' ? 'ruby.png' : 'emerald.png';
     if (reason == null) {
-      html.writeln('<a href="#" class="list-group-item">');
+      html.writeln('<a class="list-group-item">');
     } else {
-      html.writeln('<a href="#" class="list-group-item" data-toggle="tooltip" data-placement="right" title="$reason">');
+      html.writeln('<a class="list-group-item" data-toggle="tooltip" data-placement="right" title="$reason">');
     }
     html.writeln(
       '''
