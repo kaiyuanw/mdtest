@@ -174,3 +174,12 @@ String dumpToJSONString(dynamic jsonObject) {
   JsonEncoder encoder = const JsonEncoder.withIndent('  ');
   return encoder.convert(jsonObject);
 }
+
+void copyFileToDirectory(String filePath, String dirPath) {
+  Process.runSync('cp', [filePath, dirPath]);
+}
+
+String escapeStringForHTML(String content) {
+  HtmlEscape escaper = new HtmlEscape();
+  return escaper.convert(content);
+}

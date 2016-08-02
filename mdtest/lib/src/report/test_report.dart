@@ -8,7 +8,7 @@ import 'dart:io';
 import 'report.dart';
 import '../globals.dart';
 import '../util.dart';
-
+import '../../assets/locator.dart';
 
 class TestReport extends Report {
   HitmapInfo hitmapInfo;
@@ -47,105 +47,82 @@ class TestReport extends Report {
       normalizePath(outputDirectory.path, 'index.html')
     );
     indexHTML.writeAsStringSync(toHTML());
+    relatedPaths.forEach(
+      (String imagePath) => copyFileToDirectory(imagePath, outputDirectory.path)
+    );
   }
 
   String toHTML() {
-    StringBuffer webReport = new StringBuffer();
-    webReport.write(
-      '''
-      <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-      <html lang="en">
-        <head>
-          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-          <title>MDTest - ${fileBaseName(reportDataFile.path)}</title>
-          <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-          <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-          <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-          <script>
-            \$(function() {'
-              \$(\'.list-group-item\').on(\'click\', function() {
-                \$(\'.glyphicon\', this)
-                .toggleClass(\'glyphicon-chevron-right\')
-                .toggleClass(\'glyphicon-chevron-down\');
-              });
+    return
+    '''
+    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+    <html lang="en">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>MDTest - ${fileBaseName(reportDataFile.path)}</title>
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="report.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <script>
+          \$(function() {
+            \$(\'.list-group-item\').on(\'click\', function() {
+              \$(\'.glyphicon\', this)
+              .toggleClass(\'glyphicon-chevron-right\')
+              .toggleClass(\'glyphicon-chevron-down\');
             });
-          </script>
-          <style>
-          .just-padding {
-            padding: 15px;
-          }
-          .list-group.list-group-root {
-            padding: 0;
-            overflow: hidden;
-          }
-          .list-group.list-group-root .list-group {
-            margin-bottom: 0;
-          }
-          .list-group.list-group-root .list-group-item {
-            border-radius: 0;
-            border-width: 1px 0 0 0;
-          }
-          .list-group.list-group-root > .list-group-item:first-child {
-            border-top-width: 0;
-          }
-          .list-group.list-group-root > .list-group > .list-group-item {
-            padding-left: 30px;
-          }
-          .list-group.list-group-root > .list-group > .list-group > .list-group-item {
-            padding-left: 60px;
-          }
-          .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group-item {
-            padding-left: 90px;
-          }
-          .list-group-item .glyphicon {
-            margin-right: 5px;
-          }
-          td.title {
-            text-align: center;
-            padding-bottom: 10px;
-            font-family: sans-serif;
-            font-size: 20pt;
-            font-style: italic;
-            font-weight: bold;
-          }
-          td.ruler {
-            background-color: #6688D4;
-          }
-          .tooltip-inner {
-            white-space:pre;
-            max-width: none;
-          }
-          </style>
-        </head>
-        <body>
-          <table width="100%" border=0 cellspacing=0 cellpadding=0>
-            <tr><td class="title">MDTest - test report</td></tr>
-            <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
-          </table>
-          ${hitmapInfo.toHTML()}
-          <table width="100%" border=0 cellspacing=0 cellpadding=0>
-            <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
-          </table>
-          <div class="container">
-            <div class="just-padding">
-              <div class="list-group list-group-root well">
-                ${roundsInfo.map((RoundInfo round) => round.toHTML()).join('\n')}
-              </div>
+          });
+        </script>
+      </head>
+      <body>
+        <table width="100%" border=0 cellspacing=0 cellpadding=0>
+          <tr><td class="title">MDTest - test report</td></tr>
+          <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
+        </table>
+        <div class="container">
+          <div class="just-padding">
+            ${hitmapInfo.toHTML()}
+          </div>
+        </div>
+
+        <table width="100%" border=0 cellspacing=0 cellpadding=0>
+          <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
+        </table>
+
+        <div class="container">
+          <div class="just-padding">
+            ${roundsInfo.map((RoundInfo round) {
+              return
+              '''
+              <h3>${round.name}<h3>
+              <h4>${round.highlight.trim().split('\n').map((String line) => escapeStringForHTML(line)).join('</h4>\n<h4>')}</h4>
+              ''';
+            }).join('\n')}
+          </div>
+        </div>
+
+        <table width="100%" border=0 cellspacing=0 cellpadding=0>
+          <tr><td class="ruler"><img width=3 height=3 alt=""></td></tr>
+        </table>
+
+        <div class="container">
+          <div class="just-padding">
+            <div class="list-group list-group-root well">
+              ${roundsInfo.map((RoundInfo round) => round.toHTML()).join('\n')}
             </div>
           </div>
-          <script>
-            \$(document).ready(function(){
-              \$('[data-toggle="tooltip"]').tooltip({
-                  html: true,
-                  container: 'body'
-                });
-            });
-          </script>
-        </body>
-      </html>
-      '''
-    );
-    return webReport.toString();
+        </div>
+        <script>
+          \$(document).ready(function(){
+            \$('[data-toggle="tooltip"]').tooltip({
+                html: true,
+                container: 'body'
+              });
+          });
+        </script>
+      </body>
+    </html>
+    ''';
   }
 }
 
@@ -169,7 +146,6 @@ class HitmapInfo {
     int rowNum = data.length;
     int colNum = data[0].length ?? 0;
     StringBuffer html = new StringBuffer();
-    html.writeln('<div class="container">');
     html.writeln('<h3>$title</h3>');
     html.writeln('<table class="table table-striped">');
     html.writeln('<thead>');
@@ -188,9 +164,8 @@ class HitmapInfo {
     }
     html.writeln('</tbody>');
     html.writeln('</table>');
-    List<String> legendLines = legend.split('\n');
+    List<String> legendLines = legend.trim().split('\n');
     html.writeln('<h4>${legendLines.join('</h4>\n<h4>')}</h4>');
-    html.writeln('</div>');
     return html.toString();
   }
 
@@ -218,6 +193,7 @@ abstract class Info {
 }
 
 class RoundInfo extends Info {
+  String highlight;
   int skipNum;
   int passNum;
   int failNum;
@@ -225,7 +201,8 @@ class RoundInfo extends Info {
 
   RoundInfo(int roundNum, dynamic roundInfo) {
     this.id = 'round-$roundNum';
-    this.name = '#Round $roundNum';
+    this.name = 'Round #$roundNum';
+    this.highlight = roundInfo['highlight'];
     this.skipNum = roundInfo['skip-num'];
     this.passNum = roundInfo['pass-num'];
     this.failNum = roundInfo['fail-num'];
@@ -242,6 +219,7 @@ class RoundInfo extends Info {
   @override
   String toHTML() {
     StringBuffer html = new StringBuffer();
+    String imgUrl = status == 'fail' ? 'ruby.png' : 'emerald.png';
     html.writeln(
       '''
       <a href="#$id" class="list-group-item" data-toggle="collapse">
@@ -249,10 +227,11 @@ class RoundInfo extends Info {
           <div class="col-sm-3">
             <i class="glyphicon glyphicon-chevron-right"></i>$name
           </div>
-          <div class="col-sm-3">Status: $status</div>
-          <div class="col-sm-2">#Pass $passNum</div>
-          <div class="col-sm-2">#Fail $failNum</div>
-          <div class="col-sm-2">#Skip $skipNum</div>
+          <div class="col-sm-2">Status: $status</div>
+          <div class="col-sm-2">#Passed: $passNum</div>
+          <div class="col-sm-2">#Failed: $failNum</div>
+          <div class="col-sm-2">#Skipped: $skipNum</div>
+          <div class="col-sm-1"><img src="$imgUrl" height=20></div>
         </div>
       </a>
       <div class="list-group collapse" id="$id">
@@ -296,6 +275,7 @@ class TestSuiteInfo extends Info {
   @override
   String toHTML() {
     StringBuffer html = new StringBuffer();
+    String imgUrl = status == 'fail' ? 'ruby.png' : 'emerald.png';
     html.writeln(
       '''
       <a href="#$id" class="list-group-item" data-toggle="collapse">
@@ -303,10 +283,11 @@ class TestSuiteInfo extends Info {
           <div class="col-sm-3">
             <i class="glyphicon glyphicon-chevron-right"></i>$name
           </div>
-          <div class="col-sm-3">Status: $status</div>
-          <div class="col-sm-2">#Pass $passNum</div>
-          <div class="col-sm-2">#Fail $failNum</div>
-          <div class="col-sm-2">#Skip $skipNum</div>
+          <div class="col-sm-2">Status: $status</div>
+          <div class="col-sm-2">#Passed: $passNum</div>
+          <div class="col-sm-2">#Failed: $failNum</div>
+          <div class="col-sm-2">#Skipped: $skipNum</div>
+          <div class="col-sm-1"><img src="$imgUrl" height=20></div>
         </div>
       </a>
       <div class="list-group collapse" id="$id">
@@ -354,6 +335,7 @@ class TestGroupInfo extends Info {
   @override
   String toHTML() {
     StringBuffer html = new StringBuffer();
+    String imgUrl = status == 'fail' ? 'ruby.png' : 'emerald.png';
     html.writeln('<a href="#$id" class="list-group-item" data-toggle="collapse">');
     if (reason != null) {
       html.writeln('<span data-toggle="tooltip" data-placement="right" title="$reason"/>');
@@ -364,10 +346,11 @@ class TestGroupInfo extends Info {
           <div class="col-sm-3">
             <i class="glyphicon glyphicon-chevron-right"></i>$name
           </div>
-          <div class="col-sm-3">Status: $status</div>
-          <div class="col-sm-2">#Pass $passNum</div>
-          <div class="col-sm-2">#Fail $failNum</div>
-          <div class="col-sm-2">#Skip $skipNum</div>
+          <div class="col-sm-2">Status: $status</div>
+          <div class="col-sm-2">#Passed: $passNum</div>
+          <div class="col-sm-2">#Failed: $failNum</div>
+          <div class="col-sm-2">#Skipped: $skipNum</div>
+          <div class="col-sm-1"><img src="$imgUrl" height=20></div>
         </div>
       </a>
       <div class="list-group collapse" id="$id">
@@ -394,6 +377,7 @@ class TestMethodInfo extends Info {
   @override
   String toHTML() {
     StringBuffer html = new StringBuffer();
+    String imgUrl = status == 'fail' ? 'ruby.png' : 'emerald.png';
     if (reason == null) {
       html.writeln('<a href="#" class="list-group-item">');
     } else {
@@ -405,10 +389,11 @@ class TestMethodInfo extends Info {
           <div class="col-sm-3">
             <i class="glyphicon glyphicon-chevron-right"></i>$name
           </div>
-          <div class="col-sm-3">Status: $status</div>
+          <div class="col-sm-2">Status: $status</div>
           <div class="col-sm-2"></div>
           <div class="col-sm-2"></div>
           <div class="col-sm-2"></div>
+          <div class="col-sm-1"><img src="$imgUrl" height=20></div>
         </div>
       </a>
       '''

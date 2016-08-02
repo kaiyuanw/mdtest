@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import '../mobile/device_spec.dart';
+import '../mobile/device.dart';
 import 'event.dart';
 import '../globals.dart';
 import '../util.dart';
@@ -15,13 +17,25 @@ class TAPReporter {
   Map<int, TestEvent> testEventMapping;
   Map<int, GroupEvent> groupEventMapping;
   List<TestSuite> suites;
+  StringBuffer roundHighlight;
 
-  TAPReporter() {
+  TAPReporter(Map<DeviceSpec, Device> deviceMapping) {
     this.currentTestNum = 0;
     this.passingTestsNum = 0;
     this.testEventMapping = <int, TestEvent>{};
     this.groupEventMapping = <int, GroupEvent>{};
     this.suites = <TestSuite>[];
+    roundHighlight = new StringBuffer();
+    int diffFrom = beginOfDiff(
+      deviceMapping.keys.map((DeviceSpec spec) => spec.groupKey()).toList()
+    );
+    deviceMapping.forEach((DeviceSpec spec, Device device) {
+      roundHighlight.writeln(
+        '<Spec Group Key: ${spec.groupKey().substring(diffFrom)}>'
+        ' -> '
+        '<Device Group Key: ${device.groupKey()}> (${spec.nickName})'
+      );
+    });
   }
 
   void printHeader() {
@@ -187,6 +201,7 @@ class TAPReporter {
     int failures = failNum();
     return {
       'type': 'test-round',
+      'highlight': roundHighlight.toString(),
       'skip-num': skipNum(),
       'fail-num': failures,
       'pass-num': passNum(),

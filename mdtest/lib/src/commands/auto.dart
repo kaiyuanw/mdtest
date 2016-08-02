@@ -94,7 +94,7 @@ class AutoCommand extends MDTestCommand {
 
       bool testsFailed;
       if (argResults['format'] == 'tap') {
-        TAPReporter reporter = new TAPReporter();
+        TAPReporter reporter = new TAPReporter(deviceMapping);
         testsFailed
           = await runner.runAllTestsToTAP(_specs['test-paths'], reporter) != 0;
         allTAPReporters.add(reporter);

@@ -64,7 +64,7 @@ class RunCommand extends MDTestCommand {
 
     await storeMatches(deviceMapping);
 
-    TAPReporter reporter = new TAPReporter();
+    TAPReporter reporter = new TAPReporter(deviceMapping);
     bool testsFailed;
     if (argResults['format'] == 'tap') {
       testsFailed
