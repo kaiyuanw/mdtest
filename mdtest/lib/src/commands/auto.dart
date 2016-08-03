@@ -83,7 +83,7 @@ class AutoCommand extends MDTestCommand {
       MDTestRunner runner = new MDTestRunner();
 
       if (await runner.runAllApps(deviceMapping) != 0) {
-        printError('Error when running applications on #Round $roundNum');
+        printError('Error when running applications on Round #$roundNum');
         await uninstallTestingApps(deviceMapping);
         errRounds.add(roundNum);
         printInfo('End of Round #$roundNum\n');
