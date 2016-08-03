@@ -174,6 +174,7 @@ class AutoCommand extends MDTestCommand {
   }
 
   AutoCommand() {
+    usesBriefFlag();
     usesSpecsOption();
     usesCoverageFlag();
     usesTAPReportOption();

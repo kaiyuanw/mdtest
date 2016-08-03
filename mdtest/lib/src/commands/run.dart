@@ -114,6 +114,7 @@ class RunCommand extends MDTestCommand {
   }
 
   RunCommand() {
+    usesBriefFlag();
     usesSpecsOption();
     usesCoverageFlag();
     usesTAPReportOption();
