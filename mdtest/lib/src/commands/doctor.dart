@@ -7,7 +7,6 @@ import 'dart:io';
 
 import '../runner/mdtest_command.dart';
 import '../globals.dart';
-import '../util.dart';
 
 class DoctorCommand extends MDTestCommand {
 
@@ -70,12 +69,14 @@ class DoctorCommand extends MDTestCommand {
         'Please install lcov using `sudo apt-get lcov`.'
       );
     }
+
     if (result > 0) {
       bool singleSyntax = result == 1;
       printError(
         'Some tool${singleSyntax ? '' : 's'} that mdtest '
         'depend${singleSyntax ? 's' : ''} on ${singleSyntax ? 'is' : 'are'} '
-        'not installed.'
+        'not installed.  Please follow the instructions above and resolve '
+        'all problems before using mdtest.'
       );
       return 1;
     }
