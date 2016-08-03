@@ -23,8 +23,10 @@ class AutoCommand extends MDTestCommand {
 
   @override
   final String description
-    = 'Automatically run applications based on a subset of spec to device '
-      'settings that maximize the device coverage';
+    = 'Automatically install and launch flutter applications on different '
+      'device groups which satisfy the test spec.  mdtest combines test result '
+      'for each round and report it to the user.  Each application is '
+      'guaranteed to be executed on each device group.';
 
   dynamic _specs;
 
