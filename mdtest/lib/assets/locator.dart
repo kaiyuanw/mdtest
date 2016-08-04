@@ -9,8 +9,8 @@ import '../src/util.dart';
 String mdtestScriptPath = Platform.script.toFilePath();
 int binStart = mdtestScriptPath.lastIndexOf('bin');
 String mdtestRootPath = mdtestScriptPath.substring(0, binStart);
-String libPath = '$mdtestRootPath/lib';
-String assetsPath = '$libPath/assets';
+String libPath = normalizePath(mdtestRootPath, 'lib');
+String assetsPath = normalizePath(libPath, 'assets');
 
 List<String> get relatedPaths => <String>[
   normalizePath(assetsPath, 'emerald.png'),
