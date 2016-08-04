@@ -18,15 +18,15 @@ class GenerateCommand extends MDTestCommand {
   final String description
     = 'Generate code coverage or test output web report.  Examples:\n'
       'mdtest generate --report-type coverage '
-      '--load-report path/to/coverage.lcov '
+      '--load-report-data path/to/coverage.lcov '
       '--lib path/to/lib --output out\n'
       'mdtest generate --report-type test '
-      '--load-report path/to/report_data.json --output out';
+      '--load-report-data path/to/report_data.json --output out';
 
   @override
   Future<int> runCore() async {
     printInfo('Running "mdtest generate command" ...');
-    String reportDataPath = argResults['load-report'];
+    String reportDataPath = argResults['load-report-data'];
     String outputPath = argResults['output'];
     String reportType = argResults['report-type'];
     if (reportType == 'test') {
@@ -51,7 +51,7 @@ class GenerateCommand extends MDTestCommand {
   GenerateCommand() {
     usesReportTypeOption();
     argParser.addOption(
-      'load-report',
+      'load-report-data',
       defaultsTo: null,
       help:
         'Path to load the report data.  '
@@ -64,7 +64,8 @@ class GenerateCommand extends MDTestCommand {
       help:
         'Path to the flutter lib folder that contains all source code of your '
         'flutter application.  The source code should be what the code coverage '
-        'report data refers to.'
+        'report data refers to.  This option is only used when --report-type '
+        'is set to `coverage`.'
     );
     argParser.addOption(
       'output',

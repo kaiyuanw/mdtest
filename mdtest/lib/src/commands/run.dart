@@ -80,7 +80,7 @@ class RunCommand extends MDTestCommand {
       printInfo('All tests passed');
     }
 
-    String reportDataPath = argResults['save-report'];
+    String reportDataPath = argResults['save-report-data'];
     if (reportDataPath != null) {
       reportDataPath
         = normalizePath(Directory.current.path, reportDataPath);
