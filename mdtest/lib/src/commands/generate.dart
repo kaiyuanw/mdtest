@@ -15,7 +15,13 @@ class GenerateCommand extends MDTestCommand {
   final String name = 'generate';
 
   @override
-  final String description = 'Generate code coverage or test output web report';
+  final String description
+    = 'Generate code coverage or test output web report.  Examples:\n'
+      'mdtest generate --report-type coverage '
+      '--load-report path/to/coverage.lcov '
+      '--lib path/to/lib --output out\n'
+      'mdtest generate --report-type test '
+      '--load-report path/to/report_data.json --output out';
 
   @override
   Future<int> runCore() async {
@@ -43,8 +49,6 @@ class GenerateCommand extends MDTestCommand {
   }
 
   GenerateCommand() {
-    usesSpecTemplateOption();
-    usesTestTemplateOption();
     usesReportTypeOption();
     argParser.addOption(
       'load-report',
@@ -67,7 +71,7 @@ class GenerateCommand extends MDTestCommand {
       abbr: 'o',
       defaultsTo: null,
       help:
-        'Path to generate web report.  The path should either not exist or '
+        'Path to generate a web report.  The path should either not exist or '
         'point to a directory.  If the path does not exist, a new directory '
         'will be created using that path.'
     );

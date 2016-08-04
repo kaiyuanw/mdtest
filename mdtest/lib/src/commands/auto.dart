@@ -185,8 +185,9 @@ class AutoCommand extends MDTestCommand {
         'os-version',
         'screen-size'
       ],
-      help: 'Device property used to group devices to'
-            'adjust app-device coverage criterion.'
+      help: 'Device property used to group devices that applications will run '
+            'on.  Each application is guaranteed to be run on at least one '
+            'device from each of all device groups that satisfy the test spec.'
     );
   }
 }

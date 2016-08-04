@@ -32,8 +32,8 @@ abstract class MDTestCommand extends Command {
       'spec',
       defaultsTo: null,
       help:
-        'Path to the config file that specifies the devices, '
-        'apps and debug-ports for testing.'
+        'Path to the test spec file that specifies devices that you '
+        'want your applications to run on.'
     );
     _usesSpecsOption = true;
   }
