@@ -7,12 +7,11 @@ import 'dart:convert';
 import '../util.dart';
 
 
-abstract class Event {
+abstract class Result {
   String name;
-  bool skip;
-  String skipReason;
 
-  Event(this.name, this.skip, this.skipReason);
+
+  Result(this.name);
 
   Map toJson();
 
@@ -27,9 +26,11 @@ abstract class Event {
   }
 }
 
-class TestEvent extends Event {
+class TestMethodResult extends Result {
   // // Known at TestStartEvent
   int directParentGroupID;
+  bool skip;
+  String skipReason;
   // Known at ErrorEvent
   bool error;
   String errorReason;
@@ -37,8 +38,8 @@ class TestEvent extends Event {
   String result;
   bool hidden;
 
-  TestEvent(String name, this.directParentGroupID, bool skip, String skipReason)
-    : super(name, skip, skipReason) {
+  TestMethodResult(String name, this.directParentGroupID, this.skip, this.skipReason)
+    : super(name) {
     this.error = false;
   }
 
@@ -90,31 +91,32 @@ class TestEvent extends Event {
 }
 
 
-class GroupEvent extends Event {
-  List<TestEvent> testsInGroup;
+class GroupResult extends Result {
+  bool skip;
+  String skipReason;
+  List<TestMethodResult> testsInGroup;
 
-  GroupEvent(String name, bool skip, String skipReason)
-    : super(name, skip, skipReason) {
-    this.testsInGroup = <TestEvent>[];
+  GroupResult(String name, this.skip, this.skipReason) : super(name) {
+    this.testsInGroup = <TestMethodResult>[];
   }
 
-  void addTestEvent(TestEvent testEvent) {
+  void addTestEvent(TestMethodResult testEvent) {
     testsInGroup.add(testEvent);
   }
 
   @override
   int skipNum() {
-    return skip ? 0 : sum(testsInGroup.map((TestEvent e) => e.skipNum()));
+    return skip ? 0 : sum(testsInGroup.map((TestMethodResult e) => e.skipNum()));
   }
 
   @override
   int failNum() {
-    return skip ? 0 : sum(testsInGroup.map((TestEvent e) => e.failNum()));
+    return skip ? 0 : sum(testsInGroup.map((TestMethodResult e) => e.failNum()));
   }
 
   @override
   int passNum() {
-    return skip ? 0 : sum(testsInGroup.map((TestEvent e) => e.passNum()));
+    return skip ? 0 : sum(testsInGroup.map((TestMethodResult e) => e.passNum()));
   }
 
   @override
@@ -137,30 +139,29 @@ class GroupEvent extends Event {
     map['fail-num'] = failures;
     map['pass-num'] = passNum();
     map['methods-info'] = testsInGroup.map(
-      (TestEvent e) => e.toJson()
+      (TestMethodResult e) => e.toJson()
     ).toList();
     return map;
   }
 }
 
-class TestSuite {
-  String name;
-  List<Event> events;
+class TestSuiteResult extends Result {
+  List<Result> events;
 
-  TestSuite(this.name) {
-    this.events = <Event>[];
+  TestSuiteResult(String name) : super(name) {
+    this.events = <Result>[];
   }
 
   int skipNum() {
-    return sum(events.map((Event e) => e.skipNum()));
+    return sum(events.map((Result e) => e.skipNum()));
   }
 
   int failNum() {
-    return sum(events.map((Event e) => e.failNum()));
+    return sum(events.map((Result e) => e.failNum()));
   }
 
   int passNum() {
-    return sum(events.map((Event e) => e.passNum()));
+    return sum(events.map((Result e) => e.passNum()));
   }
 
   Map<String, dynamic> toJson() {
@@ -171,11 +172,11 @@ class TestSuite {
     map['fail-num'] = failNum();
     map['pass-num'] = passNum();
     map['status'] = map['fail-num'] > 0 ? 'fail' : 'pass';
-    map['children-info'] = events.map((Event e) => e.toJson()).toList();
+    map['children-info'] = events.map((Result e) => e.toJson()).toList();
     return map;
   }
 
-  void addEvent(Event event) {
+  void addEvent(Result event) {
     events.add(event);
   }
 

@@ -18,7 +18,6 @@ const String specTemplate =
       "device-id": "{optional}",
       "model-name": "{optional}",
       "os-version": "{optional}",
-      "api-level": "{optional}",
       "screen-size": "{optional}",
       "app-root": "{required}",
       "app-path": "{required}"
@@ -33,8 +32,7 @@ const String specTemplate =
 
 const String specGuide =
 'Everything in the curly braces can be replaced with your own value.\n'
-'"device-id", "model-name", "os-version", "api-level" and "screem-size" '
-'are optional.\n'
+'"device-id", "model-name", "os-version", and "screem-size" are optional.\n'
 '"app-root" and "app-path" are required.\n'
 'An example spec would be\n'
 '''
@@ -45,7 +43,6 @@ const String specGuide =
       "device-id": "HT4CWJT03204",
       "model-name": "Nexus 9",
       "os-version": "6.0",
-      "api-level": "23",
       "screen-size": "xlarge",
       "app-root": "/path/to/flutter-app",
       "app-path": "/path/to/main.dart"

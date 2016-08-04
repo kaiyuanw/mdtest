@@ -188,8 +188,3 @@ String dumpToJSONString(dynamic jsonObject) {
 void copyPathToDirectory(String fPath, String dirPath) {
   Process.runSync('cp', ['-r', fPath, dirPath]);
 }
-
-String escapeStringForHTML(String content) {
-  HtmlEscape escaper = new HtmlEscape();
-  return escaper.convert(content);
-}

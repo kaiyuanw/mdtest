@@ -23,9 +23,7 @@ class CoverageReport extends Report {
       'genhtml',
       ['-o', outputDirectory.path, reportDataFile.path]
     );
-    result.stdout.toString().trim().split('\n').forEach(
-      (String line) => printInfo(line)
-    );
+    result.stdout.toString().trim().split('\n').forEach(printInfo);
     if (result.stderr.isNotEmpty) {
       result.stderr.trim().split('\n').forEach(
         (String line) => printError(line)

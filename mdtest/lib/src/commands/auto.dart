@@ -143,7 +143,7 @@ class AutoCommand extends MDTestCommand {
       printInfo('All tests in all rounds passed');
     }
 
-    String reportDataPath = argResults['save-report'];
+    String reportDataPath = argResults['save-report-data'];
     if (reportDataPath != null) {
       reportDataPath
         = normalizePath(Directory.current.path, reportDataPath);
@@ -188,8 +188,9 @@ class AutoCommand extends MDTestCommand {
         'os-version',
         'screen-size'
       ],
-      help: 'Device property used to group devices to'
-            'adjust app-device coverage criterion.'
+      help: 'Device property used to group devices that applications will run '
+            'on.  Each application is guaranteed to be run on at least one '
+            'device from each of all device groups that satisfy the test spec.'
     );
   }
 }

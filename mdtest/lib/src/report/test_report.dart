@@ -108,7 +108,7 @@ class TestReport extends Report {
             <h3>${round.name}<h3>
             <h4>${
               round.highlight.trim().split('\n').map(
-                (String line) => escapeStringForHTML(line)
+                (String line) => HTML_ESCAPE.convert(line)
               ).join('</h4>\n<h4>')
             }</h4>
             ''';

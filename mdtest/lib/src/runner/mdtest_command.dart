@@ -44,8 +44,8 @@ abstract class MDTestCommand extends Command {
       'spec',
       defaultsTo: null,
       help:
-        'Path to the config file that specifies the devices, '
-        'apps and debug-ports for testing.'
+        'Path to the test spec file that specifies devices that you '
+        'want your applications to run on.'
     );
     _usesSpecsOption = true;
   }
@@ -70,10 +70,10 @@ abstract class MDTestCommand extends Command {
 
   void usesSaveTestReportOption() {
     argParser.addOption(
-      'save-report',
+      'save-report-data',
       defaultsTo: null,
       help:
-        'Path to save the test output report.  '
+        'Path to save the test output report data.  '
         'The report will be saved in JSON format.'
     );
     _usesSaveTestReportOption = true;
@@ -197,12 +197,12 @@ abstract class MDTestCommand extends Command {
     }
 
     if (_usesSaveTestReportOption) {
-      String savedReportPath = argResults['save-report'];
+      String savedReportPath = argResults['save-report-data'];
       if (savedReportPath != null) {
         if (argResults['format'] != 'tap') {
           printError(
-            'The --save-report option must be used with TAP test output format.  '
-            'Please set --format to tap.'
+            'The --save-report-data option must be used with TAP test output '
+            'format.  Please set --format to tap.'
           );
           return false;
         }
@@ -229,7 +229,7 @@ abstract class MDTestCommand extends Command {
         return false;
       }
       // Report data path cannot be null and must be an existing file
-      String loadReportPath = argResults['load-report'];
+      String loadReportPath = argResults['load-report-data'];
       if (loadReportPath == null) {
         printError('You must specify a path to load the report data.');
         return false;
@@ -263,7 +263,7 @@ abstract class MDTestCommand extends Command {
       if (reportType == 'coverage') {
         if (!loadReportPath.endsWith('.lcov')) {
           printError(
-            'Coverage report data path $loadReportPath must have .lov suffix'
+            'Coverage report data path $loadReportPath must have .lcov suffix'
           );
           return false;
         }

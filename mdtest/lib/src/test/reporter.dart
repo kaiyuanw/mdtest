@@ -7,24 +7,24 @@ import 'dart:convert';
 
 import '../mobile/device_spec.dart';
 import '../mobile/device.dart';
-import 'event.dart';
+import 'test_result.dart';
 import '../globals.dart';
 import '../util.dart';
 
 class TAPReporter {
   int currentTestNum;
   int passingTestsNum;
-  Map<int, TestEvent> testEventMapping;
-  Map<int, GroupEvent> groupEventMapping;
-  List<TestSuite> suites;
+  Map<int, TestMethodResult> testMethodResultMapping;
+  Map<int, GroupResult> groupResultMapping;
+  List<TestSuiteResult> suites;
   StringBuffer roundHighlight;
 
   TAPReporter(Map<DeviceSpec, Device> deviceMapping) {
     this.currentTestNum = 0;
     this.passingTestsNum = 0;
-    this.testEventMapping = <int, TestEvent>{};
-    this.groupEventMapping = <int, GroupEvent>{};
-    this.suites = <TestSuite>[];
+    this.testMethodResultMapping = <int, TestMethodResult>{};
+    this.groupResultMapping = <int, GroupResult>{};
+    this.suites = <TestSuiteResult>[];
     roundHighlight = new StringBuffer();
     int diffFrom = beginOfDiff(
       deviceMapping.keys.map((DeviceSpec spec) => spec.groupKey()).toList()
@@ -46,9 +46,9 @@ class TAPReporter {
   }
 
   Future<bool> report(String testScriptPath, Stream jsonOutput) async {
-    testEventMapping.clear();
-    groupEventMapping.clear();
-    suites.add(new TestSuite(testScriptPath));
+    testMethodResultMapping.clear();
+    groupResultMapping.clear();
+    suites.add(new TestSuiteResult(testScriptPath));
     bool hasTestOutput = false;
     await for (var line in jsonOutput) {
       convertToTAPFormat(line.toString().trim());
@@ -77,7 +77,7 @@ class TAPReporter {
       return;
     }
 
-    TestSuite lastSuite = suites.last;
+    TestSuiteResult lastSuite = suites.last;
 
     if (_isGroupEvent(event) && !_isGroupRootEvent(event)) {
       dynamic groupInfo = event['group'];
@@ -90,8 +90,8 @@ class TAPReporter {
         print('# ${groupInfo['name']}');
       }
       int groupID = groupInfo['id'];
-      GroupEvent groupEvent = new GroupEvent(name, skip, skipReason);
-      groupEventMapping[groupID] = groupEvent;
+      GroupResult groupEvent = new GroupResult(name, skip, skipReason);
+      groupResultMapping[groupID] = groupEvent;
       lastSuite.addEvent(groupEvent);
     } else if (_isTestStartEvent(event)) {
       dynamic testInfo = event['test'];
@@ -103,7 +103,7 @@ class TAPReporter {
       if (groupIDs.isNotEmpty) {
         directParentGroupID = groupIDs.last;
         // Remove group name prefix if any
-        GroupEvent directParentGroup = groupEventMapping[directParentGroupID];
+        GroupResult directParentGroup = groupResultMapping[directParentGroupID];
         String groupName = directParentGroup.name;
         if (name.startsWith(groupName)) {
           name = name.substring(groupName.length).trim();
@@ -111,16 +111,16 @@ class TAPReporter {
       }
       bool skip = testInfo['metadata']['skip'];
       String skipReason = testInfo['metadata']['skipReason'] ?? '';
-      testEventMapping[testID]
-        = new TestEvent(name, directParentGroupID, skip, skipReason);
+      testMethodResultMapping[testID]
+        = new TestMethodResult(name, directParentGroupID, skip, skipReason);
     } else if (_isErrorEvent(event)) {
       int testID = event['testID'];
-      TestEvent testEvent = testEventMapping[testID];
+      TestMethodResult testEvent = testMethodResultMapping[testID];
       String errorReason = event['error'];
       testEvent.fillError(errorReason);
     } else if (_isTestDoneEvent(event)) {
       int testID = event['testID'];
-      TestEvent testEvent = testEventMapping[testID];
+      TestMethodResult testEvent = testMethodResultMapping[testID];
       testEvent.hidden = event['hidden'];
       testEvent.result = event['result'];
       printTestResult(testEvent);
@@ -128,10 +128,10 @@ class TAPReporter {
         return;
       }
       int directParentGroupID = testEvent.directParentGroupID;
-      if (!groupEventMapping.containsKey(directParentGroupID)) {
+      if (!groupResultMapping.containsKey(directParentGroupID)) {
         lastSuite.addEvent(testEvent);
       } else {
-        GroupEvent groupEvent = groupEventMapping[directParentGroupID];
+        GroupResult groupEvent = groupResultMapping[directParentGroupID];
         groupEvent.addTestEvent(testEvent);
       }
     }
@@ -162,7 +162,7 @@ class TAPReporter {
     return event['type'] == 'testDone';
   }
 
-  void printTestResult(TestEvent event) {
+  void printTestResult(TestMethodResult event) {
     if (event.hidden)
       return;
     if (event.result != 'success') {
@@ -186,15 +186,15 @@ class TAPReporter {
   }
 
   int skipNum() {
-    return sum(suites.map((TestSuite e) => e.skipNum()));
+    return sum(suites.map((TestSuiteResult e) => e.skipNum()));
   }
 
   int failNum() {
-    return sum(suites.map((TestSuite e) => e.failNum()));
+    return sum(suites.map((TestSuiteResult e) => e.failNum()));
   }
 
   int passNum() {
-    return sum(suites.map((TestSuite e) => e.passNum()));
+    return sum(suites.map((TestSuiteResult e) => e.passNum()));
   }
 
   dynamic toJson() {
@@ -206,7 +206,7 @@ class TAPReporter {
       'fail-num': failures,
       'pass-num': passNum(),
       'status': failures > 0 ? 'fail' : 'pass',
-      'suites-info': suites.map((TestSuite suite) => suite.toJson()).toList()
+      'suites-info': suites.map((TestSuiteResult suite) => suite.toJson()).toList()
     };
   }
 }
