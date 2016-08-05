@@ -59,6 +59,9 @@ class TestReport extends Report {
     );
   }
 
+  /// Generate the entire HTML report.
+  /// TODO(kaiyuanw): Could use local css and js files so that this works
+  /// without network connections
   String toHTML() {
     StringBuffer html = new StringBuffer();
     html.writeln(
@@ -171,7 +174,8 @@ class HitmapInfo {
   String toHTML() {
     if (data == null || data.isEmpty || data.isNotEmpty && data[0].isEmpty) {
       printError('No hitmap data is found.');
-      return '<h3>No hitmap data is found</h3>';
+      return '<h3>No hitmap data is found.  '
+             'Please rerun `mdtest auto` to collect app-device hitmap.</h3>';
     }
     int rowNum = data.length;
     int colNum = data[0].length ?? 0;
@@ -188,7 +192,7 @@ class HitmapInfo {
       html.writeln('<th>${data[i][0]}</th>');
       for (int j = 1; j < colNum; j++) {
         String value = data[i][j];
-        html.writeln('<td class=\"${tdColor(value)}\">$value</td>');
+        html.writeln('<td class=\"${tdColorClass(value)}\">$value</td>');
       }
       html.writeln('</tr>');
     }
@@ -207,7 +211,7 @@ class HitmapInfo {
     return html.toString();
   }
 
-  String tdColor(String value) {
+  String tdColorClass(String value) {
     int val = int.parse(value);
     if (val == -1) {
       return 'warning';
@@ -345,6 +349,7 @@ class TestGroupInfo extends Info {
   int skipNum;
   int passNum;
   int failNum;
+  // Only for skip reason
   String reason;
   List<TestMethodInfo> testMethodsInfo;
 
