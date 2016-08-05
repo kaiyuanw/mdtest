@@ -26,8 +26,13 @@ class TestReport extends Report {
       dynamic reportData = JSON.decode(reportDataFile.readAsStringSync());
       dynamic hitmap = reportData['hitmap'];
       if (hitmap != null) {
-        hitmapInfo
-          = new HitmapInfo(hitmap['title'], hitmap['data'], hitmap['legend']);
+        hitmapInfo = new HitmapInfo(
+          hitmap['title'],
+          hitmap['data'],
+          hitmap['legend'],
+          hitmap['reachable-score'],
+          hitmap['covered-score']
+        );
       }
       int roundNum = 1;
       for (dynamic roundInfo in reportData['rounds-info']) {
@@ -147,8 +152,16 @@ class HitmapInfo {
   String title;
   List<List<String>> data;
   String legend;
+  String reachableScore;
+  String coveredScore;
 
-  HitmapInfo(this.title, dynamic hitmapData, this.legend) {
+  HitmapInfo(
+    this.title,
+    dynamic hitmapData,
+    this.legend,
+    this.reachableScore,
+    this.coveredScore
+  ) {
     this.data = <List<String>>[];
     for (Iterable<String> iterString in hitmapData) {
       data.add(iterString.toList());
@@ -183,6 +196,14 @@ class HitmapInfo {
     html.writeln('</table>');
     List<String> legendLines = legend.trim().split('\n');
     html.writeln('<h4>${legendLines.join('</h4>\n<h4>')}</h4>');
+    html.writeln(
+      '<br>\n'
+      '<h4>App-Device Path Coverage (ADPC) score:</h4>\n'
+      '<h4>Reachable ADPC score: $reachableScore, '
+      'defined by #reachable / #total.</h4>\n'
+      '<h4>Covered ADPC score: $coveredScore, '
+      'defined by #covered / #reachable.</h4>\n'
+    );
     return html.toString();
   }
 

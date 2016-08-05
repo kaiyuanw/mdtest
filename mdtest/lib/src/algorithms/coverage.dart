@@ -111,11 +111,30 @@ class CoverageMatrix {
       row.addAll(matrix[i].map(f));
       data.add(row);
     }
+    CoverageScore coverageScore = computeCoverageScore(this);
     return {
       'title': title,
       'data': data,
-      'legend': legend
+      'legend': legend,
+      'reachable-score': coverageScore.reachablePathsPercentage,
+      'covered-score': coverageScore.coverageScore
     };
+  }
+}
+
+class CoverageScore {
+  NumberFormat _scoreFormat;
+  final double _reachablePathsPercentage;
+  final double _coverageScore;
+
+  String get reachablePathsPercentage
+    => _scoreFormat.format(_reachablePathsPercentage);
+
+  String get coverageScore
+    => _scoreFormat.format(_coverageScore);
+
+  CoverageScore(this._reachablePathsPercentage, this._coverageScore) {
+    this._scoreFormat = new NumberFormat('%##.0#', 'en_US');
   }
 }
 
@@ -127,13 +146,13 @@ int _countNumberInCoverageMatrix(List<List<int>> matrix, bool test(int e)) {
   return result;
 }
 
-/// Compute and print the app-device coverage.
-void computeAndReportCoverage(CoverageMatrix coverageMatrix) {
+/// Compute the percentage of reachable app-device paths and app-device
+/// coverage score.  Return null if coverage matrix is null.
+CoverageScore computeCoverageScore(CoverageMatrix coverageMatrix) {
   if (coverageMatrix == null) {
     printError('Coverage matrix is null');
-    return;
+    return null;
   }
-
   List<List<int>> matrix = coverageMatrix.matrix;
   int rowNum = matrix.length;
   int colNum = matrix[0].length;
@@ -142,21 +161,25 @@ void computeAndReportCoverage(CoverageMatrix coverageMatrix) {
     = _countNumberInCoverageMatrix(matrix, (int e) => e != cannotBeCovered);
   int coveredCombinationNum
     = _countNumberInCoverageMatrix(matrix, (int e) => e > isNotCovered);
-  StringBuffer scoreReport = new StringBuffer();
-  NumberFormat percentFormat = new NumberFormat('%##.0#', 'en_US');
-  scoreReport.writeln('App-Device Path Coverage (ADPC) score:');
   double reachableCoverageScore = reachableCombinationNum / totalPathNum;
-  scoreReport.writeln(
-    'Reachable ADPC score: ${percentFormat.format(reachableCoverageScore)}, '
-    'defined by #reachable / #total.'
-  );
   double coveredCoverageScore
     = coveredCombinationNum / reachableCombinationNum;
-  scoreReport.writeln(
-    'Covered ADPC score: ${percentFormat.format(coveredCoverageScore)}, '
-    'defined by #covered / #reachable.'
+  return new CoverageScore(reachableCoverageScore, coveredCoverageScore);
+}
+
+/// Print the coverage score
+void printCoverageScore(CoverageScore coverageScore) {
+  if (coverageScore == null) {
+    printError('Coverage score is null');
+    return;
+  }
+  print(
+    'App-Device Path Coverage (ADPC) score:\n'
+    'Reachable ADPC score: ${coverageScore.reachablePathsPercentage}, '
+    'defined by #reachable / #total.\n'
+    'Covered ADPC score: ${coverageScore.coverageScore}, '
+    'defined by #covered / #reachable.\n'
   );
-  print(scoreReport.toString());
 }
 
 const String legend =
@@ -199,7 +222,9 @@ void printHitmap(String title, CoverageMatrix coverageMatrix) {
     }
   );
   printLegend();
-  computeAndReportCoverage(coverageMatrix);
+  printCoverageScore(
+    computeCoverageScore(coverageMatrix)
+  );
 }
 
 void printMatrix(String title, CoverageMatrix coverageMatrix, f(int e)) {
