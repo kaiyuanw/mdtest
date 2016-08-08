@@ -86,8 +86,8 @@ detected by `mdtest`.  The test scripts specified in the test spec should
 contain flutter driver tests for integration testing.
 
 `mdtest` uses a test spec to find devices that each application can run on based
-on the given propinitiate the test runs.  The test spec is in JSON format and
-should follow the style below:
+on the given device properties and initiate the test runs.  The test spec is in
+JSON format and should follow the style below:
 
 ```json
 {
@@ -149,7 +149,8 @@ device specs inside "devices" attribute.  Each device spec has a unique
    [flutter integration testing](https://flutter.io/testing/#integration-testing).
 
 You can add arbitraty number of device specs by repeatedly adding attributes
-following the rules above.
+following the rules above.  `mdtest create` can be used to create a test spec
+template.
 
 ## Commands
 
@@ -215,8 +216,9 @@ small number of test runs to cover all possible app-device mappings.  The
 heuristic here is to make sure at least one app in each application group runs
 on at least one device in each device group with minimum test runs.  However,
 since the problem is a set cover problem, it is NP-complete, `mdtest` uses a
-greedy approximation algorithm that tries to compute a small number of test runs
-that achieve all app-device paths.  The algorithm has a complexity of O(log(n)).
+[greedy approximation algorithm](https://en.wikipedia.org/wiki/Set_cover_problem#Greedy_algorithm)
+that tries to compute a small number of test runs that achieve all app-device
+paths.  The algorithm has a complexity of O(log(n)).
 
 * Arguments
   - `--brief` disable logging and only print out test execution results if set.
@@ -230,7 +232,8 @@ that achieve all app-device paths.  The algorithm has a complexity of O(log(n)).
     results will be saved in JSON format and can be used to generate test
     report.
   - `--groupby` is the device property that will be used to group all available
-    devices.
+    devices.  The value can only be one of
+    ['device-id'(default), 'platform', 'model-name', 'os-version', 'screen-size'].
   - The rest of the arguments would be either paths or glob patterns for the
     test scripts.
 
@@ -265,7 +268,7 @@ driver instance.  You can retrieve the corresponding flutter driver instance by
 providing the nickname, which is specified in the test spec.  DriverMap class
 will lazy initialize the flutter driver the first time you retrieve it.  Once
 you get the flutter driver instance, you can invoke any public methods that
-FlutterDriver class provides.  To use this wrapper, you should add the following
+the FlutterDriver class provides.  To use this wrapper, you should add the following
 import statement in your test scripts:
 
 ```
@@ -274,7 +277,7 @@ import 'package:mdtest/driver_util.dart';
 ```
 
 Here is a full example test suite using DriverMap class:
-```
+```dart
 import 'dart:async';
 
 import 'package:flutter_driver/flutter_driver.dart';
@@ -284,24 +287,24 @@ import 'package:mdtest/driver_util.dart';
 void main() {
   group('Multi-device application tests', () {
     DriverMap driverMap;
-    
+
     setUpAll(() {
       driverMap = new DriverMap();
     });
-    
+
     tearDownAll(() {
       if (driverMap != null) {
         driverMap.closeAll();
       }
     });
-    
+
     test('Test 1', () async {
       // Lazy initialize driver
       FlutterDriver driver = await driverMap['nickname'];
       // Write normal flutter driver tests
       ...
     });
-    
+
     test('Test 2', () async {
       // Get all flutter driver instances
       List<FlutterDriver> drivers = await Future.wait(driverMap.values);
@@ -319,5 +322,6 @@ void main() {
 }
 ```
 
-The way to write integration tests for flutter apps follows
+`mdtest create` can be used to create a sample test script for you.  The way to
+write integration tests for flutter apps follows
 [flutter integration testing](https://flutter.io/testing/#integration-testing).
