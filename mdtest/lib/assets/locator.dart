@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import '../src/util.dart';
+import 'package:mdtest/src/util.dart';
 
 String mdtestScriptPath = Platform.script.toFilePath();
 int binStart = mdtestScriptPath.lastIndexOf('bin');
