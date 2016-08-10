@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:mdtest/src/util.dart';
 
+// Provide paths which point to the assets directory
 String mdtestScriptPath = Platform.script.toFilePath();
 int binStart = mdtestScriptPath.lastIndexOf('bin');
 String mdtestRootPath = mdtestScriptPath.substring(0, binStart);

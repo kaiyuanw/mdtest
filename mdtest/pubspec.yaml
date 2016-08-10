@@ -12,4 +12,6 @@ dependencies:
     path: ../../../../third_party/dart/dlog
   flutter_driver:
     path: ../deps/flutter/packages/flutter_driver
-  mockito: 1.0.0
+dev_dependencies:
+   test: ^0.12.15+1
+   mockito: 1.0.0
