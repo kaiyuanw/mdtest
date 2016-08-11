@@ -13,7 +13,7 @@ String mdtestRootPath = mdtestScriptPath.substring(0, binStart);
 String libPath = normalizePath(mdtestRootPath, 'lib');
 String assetsPath = normalizePath(libPath, 'assets');
 
-List<String> get relatedPaths => <String>[
+List<String> get assetItemPaths => <String>[
   normalizePath(assetsPath, 'emerald.png'),
   normalizePath(assetsPath, 'ruby.png'),
   normalizePath(assetsPath, 'report.css')

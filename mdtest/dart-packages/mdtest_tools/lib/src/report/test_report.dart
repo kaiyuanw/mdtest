@@ -54,7 +54,7 @@ class TestReport extends Report {
       normalizePath(outputDirectory.path, 'index.html')
     );
     indexHTML.writeAsStringSync(toHTML());
-    relatedPaths.forEach(
+    assetItemPaths.forEach(
       (String imagePath) => copyPathToDirectory(imagePath, outputDirectory.path)
     );
   }
