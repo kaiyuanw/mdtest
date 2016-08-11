@@ -8,10 +8,10 @@ import '../util.dart';
 
 // Provide paths which point to the assets directory
 String mdtestScriptPath = Platform.script.toFilePath();
-int binStart = mdtestScriptPath.lastIndexOf('bin');
-String mdtestRootPath = mdtestScriptPath.substring(0, binStart);
-String libPath = normalizePath(mdtestRootPath, 'lib');
-String assetsPath = normalizePath(libPath, 'assets');
+int mdtestStart = mdtestScriptPath.lastIndexOf('/mdtest/');
+String mdtestRootPath = mdtestScriptPath.substring(0, mdtestStart);
+String assetsPath
+  = normalizePath(mdtestRootPath, 'dart-packages/mdtest_tools/lib/assets');
 
 List<String> get assetItemPaths => <String>[
   normalizePath(assetsPath, 'emerald.png'),
