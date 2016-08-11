@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-import 'package:mdtest/src/mobile/device_spec.dart';
-import 'package:mdtest/src/mobile/device.dart';
-import 'package:mdtest/src/algorithms/matching.dart';
+import 'package:mdtest_tools/src/mobile/device_spec.dart';
+import 'package:mdtest_tools/src/mobile/device.dart';
+import 'package:mdtest_tools/src/algorithms/matching.dart';
 
 import 'package:test/test.dart';
 

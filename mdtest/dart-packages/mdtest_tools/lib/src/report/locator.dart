@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:mdtest/src/util.dart';
+import '../util.dart';
 
 // Provide paths which point to the assets directory
 String mdtestScriptPath = Platform.script.toFilePath();

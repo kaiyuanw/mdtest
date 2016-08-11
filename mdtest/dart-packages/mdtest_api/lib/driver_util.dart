@@ -3,4 +3,4 @@
 // license that can be found in the LICENSE file.
 library driver_util;
 
-export 'src/api/driver_map.dart';
+export 'src/driver_map.dart';
