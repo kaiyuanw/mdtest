@@ -9,7 +9,7 @@ import 'dart:collection';
 
 import 'package:flutter_driver/flutter_driver.dart';
 
-import '../base/common.dart';
+import 'common.dart';
 
 /// Singleton pattern is used to load config data only once.
 class Meta {
