@@ -1,6 +1,6 @@
 # mdtest: Multi-Device Applicatoin Testing Framework
 
-`mdtest` is a command line tool built on top of [flutter](https://flutter.io/)
+`mdtest` is a command line tool built on top of [Flutter](https://flutter.io/)
 for integration testing.  The tool wraps several flutter commands and implements
 algorithms to deliver a robust end to end testing experience for multi-device
 applications.  `mdtest` targets at multi-device flutter apps and provides a
@@ -15,10 +15,11 @@ test scripts across platforms.
 
 * Tools
   - [Dart](https://www.dartlang.org/): must be installed and accessible from
-   `PATH`
+   `PATH`.
   - PUB: comes with Dart and must be accessible from `PATH`.
-  - [Flutter](https://flutter.io/): must be installed and accessible from `PATH`.
-   `flutter doctor` should report no error
+  - [Flutter](https://flutter.io/): must be installed and accessible from
+   `PATH`.  `flutter doctor` should report no error.  Please refer to the
+   [next section](#installing-mdtest) for installation.
   - [ADB](http://developer.android.com/tools/help/adb.html): must be installed
    and accessible from `PATH`
   - LCOV: `sudo apt-get install lcov` on Linux, `brew install lcov` on Mac OS.
@@ -30,36 +31,43 @@ test scripts across platforms.
 
 # Installing mdtest
 
-## Clone from Github
+## Clone baku repo
 
 To get `mdtest`, use `git` to clone the [baku](https://github.com/vanadium/baku)
 repository and then add the `mdtest` tool to `PATH`
 
 ```
-$ git clone git@github.com:vanadium/baku.git
-$ export PATH="$(pwd)/mdtest/bin:$PATH"
+baku$ git clone git@github.com:vanadium/baku.git
+baku$ export PATH="$(pwd)/mdtest/bin:$PATH"
 ```
-Open mdtest/pubspec.yaml file and make the following change:
 
-replace
- ```
- dlog:
-   path: ../../../../third_party/dart/dlog
- ```
+## Install Flutter
+
+Run `make` under the baku directory and it will `git clone` Flutter repo under
+deps folder.  Add `flutter` to `PATH` by
+
+```
+baku$ make
+baku$ export PATH="$(pwd)/deps/flutter/bin:$PATH"
+```
+
+`mdtest` will depends on the Flutter tool under deps folder by default.  To use
+Flutter under another location, you need to add it into `PATH` and change the
+pubspec.yaml under mdtest/dart-packages/mdtest_api folder.
+
+Replace
+
+```
+flutter_driver:
+  path: ../../../deps/flutter/packages/flutter_driver
+```
+
 with
- ```
- dlog: 0.0.5
- ```
-replace
- ```
- flutter_driver:
-   path: ../deps/flutter/packages/flutter_driver
- ```
-with
- ```
- flutter_driver:
-   path: ${path/to/flutter}/packages/flutter_driver
- ```
+
+```
+flutter_driver:
+  path: ${path/to/flutter}/packages/flutter_driver
+```
 
 The first time you run the `mdtest` command, it will build the tool ifself.  If
 you see Build Success, then `mdtest` is ready to go.  You can run `mdtest
@@ -325,3 +333,9 @@ void main() {
 `mdtest create` can be used to create a sample test script for you.  The way to
 write integration tests for flutter apps follows
 [flutter integration testing](https://flutter.io/testing/#integration-testing).
+
+# Examples
+
+`mdtest` comes with a [shared counter example](examples/shared-counter) and a
+[chat example](examples/chat).  You can navigate to those examples and start
+running `mdtest`.
