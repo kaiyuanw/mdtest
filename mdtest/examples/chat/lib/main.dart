@@ -130,6 +130,7 @@ class ChatScreenState extends State<ChatScreen> {
       }
       JsonDecoder decoder = new JsonDecoder();
       dynamic result = decoder.convert(json);
+      print('Response: ${result["answer"]}');
     });
   }
 
@@ -159,6 +160,7 @@ class ChatScreenState extends State<ChatScreen> {
         )
       );
       if (_messages.length > history.length) {
+        print('Local messages size is greater than the remote messages size!');
         setState(() {
           _messages.clear();
         });
