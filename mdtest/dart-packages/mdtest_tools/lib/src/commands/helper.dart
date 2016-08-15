@@ -119,9 +119,17 @@ class MDTestRunner {
       if (testStopPattern.hasMatch(line.toString()))
         break;
     }
-    process.stderr.drain();
+
+    bool hasError = false;
+    Stream stderrStream = process.stderr
+                                 .transform(new Utf8Decoder())
+                                 .transform(new LineSplitter());
+    await for (var line in stderrStream) {
+      print(line.toString().trim());
+      hasError = true;
+    }
     process.kill();
-    return 0;
+    return hasError ? 1 : 0;
   }
 
   /// Create a process and invoke 'pub run test --reporter json [testPath]' to
@@ -137,24 +145,22 @@ class MDTestRunner {
       'pub',
       ['run', 'test', '--reporter', 'json', '$testPath']
     );
-    bool hasTestOutput = await reporter.report(
+    await reporter.report(
       testPath.substring(diffFrom),
       process.stdout
              .transform(new Utf8Decoder())
              .transform(new LineSplitter())
     );
-    if (hasTestOutput) {
-      process.stderr.drain();
-      return await process.exitCode;
-    }
 
+    bool hasError = false;
     Stream stderrStream = process.stderr
                                  .transform(new Utf8Decoder())
                                  .transform(new LineSplitter());
     await for (var line in stderrStream) {
       print(line.toString().trim());
+      hasError = true;
     }
-    return 1;
+    return hasError ? 1 : await process.exitCode;
   }
 
   /// Kill all app processes
