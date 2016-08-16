@@ -42,10 +42,10 @@ class MDTestRunner {
   /// error.
   Future<int> runApp(DeviceSpec deviceSpec, Device device) async {
     // Currently, unlocking iOS device is not supported.
-    if (device.isAndroidDevice() && await unlockDevice(device) != 0) {
-      printError('Device ${device.id} fails to wake up.');
-      return 1;
-    }
+    // if (device.isAndroidDevice() && await unlockDevice(device) != 0) {
+    //   printError('Device ${device.id} fails to wake up.');
+    //   return 1;
+    // }
 
     printInfo('Start application ${deviceSpec.appPath} on device ${device.id}');
     Process process = await Process.start(
