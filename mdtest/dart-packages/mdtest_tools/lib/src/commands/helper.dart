@@ -73,12 +73,13 @@ class MDTestRunner {
 
     print('AAAAAAAAAA: stdout stops');
 
-    lineStream = process.stderr
-    .transform(new Utf8Decoder())
-    .transform(new LineSplitter());
-    await for (var line in lineStream) {
-      printError(line.toString());
-    }
+    // lineStream = process.stderr
+    // .transform(new Utf8Decoder())
+    // .transform(new LineSplitter());
+    // await for (var line in lineStream) {
+    //   printError(line.toString());
+    // }
+    await process.stderr.drain();
 
     print('BBBBBBBBBB: stderr stops');
 
