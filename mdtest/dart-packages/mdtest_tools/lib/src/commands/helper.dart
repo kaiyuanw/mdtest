@@ -64,13 +64,25 @@ class MDTestRunner {
       if (portMatch != null) {
         printInfo('${line.toString().trim()} (${deviceSpec.nickName}: ${device.id})');
         deviceSpec.observatoryUrl = portMatch.group(1);
+        // break;
       }
       if (line.toString().contains('Application running')) {
         break;
       }
     }
 
-    process.stderr.drain();
+    print('AAAAAAAAAA: stdout stops');
+
+    lineStream = process.stderr
+    .transform(new Utf8Decoder())
+    .transform(new LineSplitter());
+    await for (var line in lineStream) {
+      printError(line.toString());
+    }
+
+    print('BBBBBBBBBB: stderr stops');
+
+    // process.stderr.drain();
 
     if (deviceSpec.observatoryUrl == null) {
       printError('No observatory url is found.');
