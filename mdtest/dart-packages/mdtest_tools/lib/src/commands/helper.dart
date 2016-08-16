@@ -59,33 +59,16 @@ class MDTestRunner {
                                .transform(new LineSplitter());
     RegExp portPattern = new RegExp(r'Observatory listening on (http.*)');
     await for (var line in lineStream) {
-      printTrace(line.toString().trim());
       Match portMatch = portPattern.firstMatch(line.toString());
       if (portMatch != null) {
         printInfo('${line.toString().trim()} (${deviceSpec.nickName}: ${device.id})');
         deviceSpec.observatoryUrl = portMatch.group(1);
-        // break;
-      }
-      if (line.toString().contains('Application running')) {
         break;
       }
+      printTrace(line.toString().trim());
     }
 
-    // new Future.delayed(const Duration(seconds: 3));
-
-    // print('AAAAAAAAAA: stdout stops');
-
-    lineStream = process.stderr
-    .transform(new Utf8Decoder())
-    .transform(new LineSplitter());
-    await for (var line in lineStream) {
-      printError(line.toString());
-    }
-    // await process.stderr.drain();
-    //
-    // print('BBBBBBBBBB: stderr stops');
-
-    // process.stderr.drain();
+    process.stderr.drain();
 
     if (deviceSpec.observatoryUrl == null) {
       printError('No observatory url is found.');
