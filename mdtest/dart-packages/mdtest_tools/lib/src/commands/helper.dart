@@ -71,6 +71,8 @@ class MDTestRunner {
       }
     }
 
+    new Future.delayed(const Duration(seconds: 3));
+
     // print('AAAAAAAAAA: stdout stops');
 
     // lineStream = process.stderr
