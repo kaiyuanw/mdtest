@@ -59,13 +59,16 @@ class MDTestRunner {
                                .transform(new LineSplitter());
     RegExp portPattern = new RegExp(r'Observatory listening on (http.*)');
     await for (var line in lineStream) {
+      printTrace(line.toString().trim());
       Match portMatch = portPattern.firstMatch(line.toString());
       if (portMatch != null) {
         printInfo('${line.toString().trim()} (${deviceSpec.nickName}: ${device.id})');
         deviceSpec.observatoryUrl = portMatch.group(1);
         // break;
       }
-      printTrace(line.toString().trim());
+      if (line.toString().contains('Application running')) {
+        break;
+      }
     }
 
     print('AAAAAAAAAA: stdout stops');
