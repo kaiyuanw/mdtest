@@ -71,7 +71,7 @@ class MDTestRunner {
       }
     }
 
-    print('AAAAAAAAAA: stdout stops');
+    // print('AAAAAAAAAA: stdout stops');
 
     // lineStream = process.stderr
     // .transform(new Utf8Decoder())
@@ -79,9 +79,9 @@ class MDTestRunner {
     // await for (var line in lineStream) {
     //   printError(line.toString());
     // }
-    await process.stderr.drain();
-
-    print('BBBBBBBBBB: stderr stops');
+    // await process.stderr.drain();
+    //
+    // print('BBBBBBBBBB: stderr stops');
 
     // process.stderr.drain();
 
