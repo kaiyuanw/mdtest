@@ -72,8 +72,8 @@ Future<int> unlockDevice(Device device) async {
     'adb',
     ['-s', '${device.id}', 'shell', 'input', 'keyevent', 'KEYCODE_MENU']
   );
-  wakeUpAndUnlockProcessResult.stdout.drain();
-  wakeUpAndUnlockProcessResult.stderr.drain();
+  // wakeUpAndUnlockProcessResult.stdout.drain();
+  // wakeUpAndUnlockProcessResult.stderr.drain();
 
   int result = wakeUpAndUnlockProcessResult.exitCode;
 
