@@ -71,16 +71,17 @@ class MDTestRunner {
       }
     }
 
-    new Future.delayed(const Duration(seconds: 3));
+    // new Future.delayed(const Duration(seconds: 3));
 
     // print('AAAAAAAAAA: stdout stops');
 
-    // lineStream = process.stderr
-    // .transform(new Utf8Decoder())
-    // .transform(new LineSplitter());
-    // await for (var line in lineStream) {
-    //   printError(line.toString());
-    // }
+    lineStream = process.stderr
+    .transform(new Utf8Decoder())
+    .transform(new LineSplitter());
+    await for (var line in lineStream) {
+      // printError(line.toString());
+      break;
+    }
     // await process.stderr.drain();
     //
     // print('BBBBBBBBBB: stderr stops');
