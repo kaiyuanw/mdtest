@@ -59,6 +59,7 @@ class MDTestRunner {
                                .transform(new LineSplitter());
     RegExp portPattern = new RegExp(r'Observatory listening on (http.*)');
     await for (var line in lineStream) {
+      print(line.toString());
       Match portMatch = portPattern.firstMatch(line.toString());
       if (portMatch != null) {
         printInfo('${line.toString().trim()} (${deviceSpec.nickName}: ${device.id})');
