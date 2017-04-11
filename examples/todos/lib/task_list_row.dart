@@ -27,7 +27,7 @@ class TaskListRowState extends State<TaskListRow> {
     // TODO(jxson): create a flutter issue about the ink effect going away
     // when using Dismissable.
     return new Dismissable(
-        key: new ObjectKey(config.list),
+        key: new ObjectKey(widget.list),
         direction: DismissDirection.endToStart,
         onDismissed: _handleDismiss,
         background: new Container(
@@ -44,20 +44,20 @@ class TaskListRowState extends State<TaskListRow> {
                     bottom: new BorderSide(color: theme.dividerColor))),
             child: new ListItem(
                 isThreeLine: true,
-                title: new Text(config.list.name),
-                subtitle: new Text(config.list.uuid),
+                title: new Text(widget.list.name),
+                subtitle: new Text(widget.list.uuid),
                 onTap: _open)));
   }
 
   void _open() {
-    Navigator.pushNamed(context, '/lists/${config.list.uuid}');
+    Navigator.pushNamed(context, '/lists/${widget.list.uuid}');
   }
 
   void _handleDismiss(DismissDirection direction) {
     switch (direction) {
       // Swipe from right to left to delete.
       case DismissDirection.endToStart:
-        config.onDelete(config.list.uuid);
+        widget.onDelete(widget.list.uuid);
         break;
       default:
         throw "Not implemented.";

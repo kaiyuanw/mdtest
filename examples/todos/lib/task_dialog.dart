@@ -63,7 +63,7 @@ class TaskDialogState extends State<TaskDialog> {
   }
 
   void _save() {
-    Navigator.pop(context, config.task);
+    Navigator.pop(context, widget.task);
   }
 
   void _cancel() {
@@ -78,6 +78,6 @@ class TaskDialogState extends State<TaskDialog> {
   }
 
   void _update(String value) {
-    config.task.description = value;
+    widget.task.description = value;
   }
 }

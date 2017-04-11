@@ -57,7 +57,7 @@ class TaskListDialogState extends State<TaskListDialog> {
   }
 
   void _save() {
-    Navigator.pop(context, config.list);
+    Navigator.pop(context, widget.list);
   }
 
   void _cancel() {
@@ -72,6 +72,6 @@ class TaskListDialogState extends State<TaskListDialog> {
   }
 
   void _update(String value) {
-    config.list.name = value;
+    widget.list.name = value;
   }
 }
