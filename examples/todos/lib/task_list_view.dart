@@ -25,13 +25,13 @@ class TaskListView extends StatefulWidget {
 class TaskListViewState extends State<TaskListView> {
   @override
   Widget build(BuildContext context) {
-    List<Widget> children = config.list.tasks.keys.map((String uuid) {
-      TaskData task = config.list.tasks[uuid];
+    List<Widget> children = widget.list.tasks.keys.map((String uuid) {
+      TaskData task = widget.list.tasks[uuid];
       return new TaskRow(task: task, onDelete: _delete, onComplete: _complete);
     }).toList();
 
     return new Scaffold(
-        appBar: new AppBar(title: new Text('List: ${config.list.name}')),
+        appBar: new AppBar(title: new Text('List: ${widget.list.name}')),
         body: new Block(children: children),
         floatingActionButton: new FloatingActionButton(
             onPressed: _showNewTaskDialog,
@@ -49,16 +49,16 @@ class TaskListViewState extends State<TaskListView> {
   void _add(TaskData task) {
     if (task == null) return;
 
-    setState(() => config.list.tasks[task.uuid] = task);
+    setState(() => widget.list.tasks[task.uuid] = task);
   }
 
   void _delete(String uuid) {
-    setState(() => config.list.tasks.remove(uuid));
+    setState(() => widget.list.tasks.remove(uuid));
   }
 
   void _complete(String uuid) {
     setState(() {
-      TaskData task = config.list.tasks[uuid];
+      TaskData task = widget.list.tasks[uuid];
       task.completed = true;
     });
   }

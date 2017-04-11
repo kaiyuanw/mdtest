@@ -28,18 +28,18 @@ class TaskRowState extends State<TaskRow> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Text description = config.task.completed
-        ? new Text(config.task.description,
+    final Text description = widget.task.completed
+        ? new Text(widget.task.description,
             style: new TextStyle(
                 color: theme.disabledColor,
                 decoration: TextDecoration.lineThrough))
-        : new Text(config.task.description);
+        : new Text(widget.task.description);
 
     // TODO(jxson): create a flutter issue about the ripple effect going away
     // when using Dismissable.
     return new Dismissable(
         // NOTE: Key needs to change based on completion.
-        key: new ObjectKey("${config.task.uuid}-${config.task.completed}"),
+        key: new ObjectKey("${widget.task.uuid}-${widget.task.completed}"),
         direction: DismissDirection.horizontal,
         onDismissed: _handleDismiss,
         background: new Container(
@@ -63,18 +63,18 @@ class TaskRowState extends State<TaskRow> {
             child: new ListItem(
                 isThreeLine: true,
                 title: description,
-                subtitle: new Text(config.task.uuid))));
+                subtitle: new Text(widget.task.uuid))));
   }
 
   void _handleDismiss(DismissDirection direction) {
     switch (direction) {
       // Swipe from right to left to delete.
       case DismissDirection.endToStart:
-        config.onDelete(config.task.uuid);
+        widget.onDelete(widget.task.uuid);
         break;
       // Swipe from left to right to complete.
       case DismissDirection.startToEnd:
-        config.onComplete(config.task.uuid);
+        widget.onComplete(widget.task.uuid);
         break;
       default:
         throw "Not implemented.";

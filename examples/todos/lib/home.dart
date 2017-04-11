@@ -30,8 +30,8 @@ class HomeState extends State<Home> {
     // for rendering rows in the scrollable list.
     //
     // SEE: https://git.io/vrzFH
-    List<Widget> children = config.lists.keys.map((String uuid) {
-      TaskListData list = config.lists[uuid];
+    List<Widget> children = widget.lists.keys.map((String uuid) {
+      TaskListData list = widget.lists[uuid];
       return new TaskListRow(list, _delete);
     }).toList();
 
@@ -65,10 +65,10 @@ class HomeState extends State<Home> {
     // Use `setState(fn)` to signal to that some internal state has changed
     // and the widget needs to be rebuilt. If the state updates are not
     // wrapped in a `setState` call the change will not be displayed.
-    setState(() => config.lists[list.uuid] = list);
+    setState(() => widget.lists[list.uuid] = list);
   }
 
   void _delete(String uuid) {
-    setState(() => config.lists.remove(uuid));
+    setState(() => widget.lists.remove(uuid));
   }
 }
